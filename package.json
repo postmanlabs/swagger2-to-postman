@@ -1,0 +1,28 @@
+{
+  "name": "swagger20Postman",
+  "version": "0.0.1",
+  "description": "A module to convert swagger 2.0 JSONs to Postman v2.0",
+  "main": "convert.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "lodash": "*",
+    "node-uuid": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/postmanlabs/swagger20Postman.git"
+  },
+  "keywords": [
+    "swagger",
+    "postman",
+    "newman"
+  ],
+  "author": "Abhijit Kane <abhijitkane@gmail.com>",
+  "license": "MIT License",
+  "bugs": {
+    "url": "https://github.com/postmanlabs/swagger20Postman/issues"
+  },
+  "homepage": "https://github.com/postmanlabs/swagger20Postman"
+}
