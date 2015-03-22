@@ -19,8 +19,8 @@
     "postman",
     "newman"
   ],
-  "author": "Abhijit Kane <abhijitkane@gmail.com>",
-  "license": "MIT License",
+  "author": "Postman Labs <help@getpostman.com>",
+  "license": "Apache 2.0",
   "bugs": {
     "url": "https://github.com/postmanlabs/swagger20Postman/issues"
   },
