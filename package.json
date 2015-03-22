@@ -1,8 +1,23 @@
 {
   "name": "swagger-postman",
   "version": "0.0.1",
+  "author": "Postman Labs <help@getpostman.com>",
+  "license": "Apache 2.0",
   "description": "A module to convert swagger 2.0 JSONs to Postman v2.0",
-  "main": "convert.js",
+  "keywords": [
+    "swagger",
+    "postman",
+    "newman"
+  ],
+  "homepage": "https://github.com/postmanlabs/swagger-postman",
+  "bugs": {
+    "url": "https://github.com/postmanlabs/swagger-postman/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/postmanlabs/swagger-postman.git"
+  },
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,19 +25,11 @@
     "lodash": "^3.5.0",
     "node-uuid": "^1.4.3"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/postmanlabs/swagger-postman.git"
-  },
-  "keywords": [
-    "swagger",
-    "postman",
-    "newman"
-  ],
-  "author": "Postman Labs <help@getpostman.com>",
-  "license": "Apache 2.0",
-  "bugs": {
-    "url": "https://github.com/postmanlabs/swagger-postman/issues"
-  },
-  "homepage": "https://github.com/postmanlabs/swagger-postman"
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "istanbul": "^0.3.8",
+    "jscs": "^1.11.3",
+    "jshint": "^2.6.3",
+    "mocha": "^2.2.1"
+  }
 }
