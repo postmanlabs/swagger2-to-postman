@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "lodash": "*",
-    "node-uuid": "*"
+    "lodash": "^3.5.0",
+    "node-uuid": "^1.4.3"
   },
   "repository": {
     "type": "git",
