@@ -1,29 +1,35 @@
 var _ = require('lodash');
 var uuid = require('node-uuid');
+var jsface = require('jsface');
 
 function ConvertResult(status, message) {
 	this.status = status;
 	this.message = message;
 }
 
-var converter = {
-	basePath: "",
-	collectionId: "",
-	folders: {} ,
-	baseParams: {},
+var Swagger2Postman = jsface.Class({
+	constructor: function(firstName,lastName) {
+	    this.collectionJson = {
+			"id": "",
+			"name": "",
+			"description": "",
+			"order": [
+			],
+			"folders": [],
+			"timestamp": 1413302258635,
+			"synced": false,
+			"requests": [
+			]
+		};
+        this.basePath = "";
+        this.collectionId = "";
+        this.folders = {};
+        this.baseParams = {};
+  	},
 
-	collectionJson: {
-		"id": "",
-		"name": "",
-		"description": "",
-		"order": [
-		],
-		"folders": [],
-		"timestamp": 1413302258635,
-		"synced": false,
-		"requests": [
-		]
-	},
+  	main: function(Swagger2Postman) {
+
+  	},
 
 	validate: function(json) {
 		if(!json.hasOwnProperty("swagger") || json.swagger!=="2.0") {
@@ -293,8 +299,10 @@ var converter = {
 	
 		this.collectionJson.id = this.collectionId;
 		console.log(JSON.stringify(this.collectionJson));
+
+		return this.collectionJson;
 		
 	},
-};
+});
 
-module.exports = converter;
+module.exports = Swagger2Postman;
