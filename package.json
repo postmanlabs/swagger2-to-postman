@@ -1,10 +1,10 @@
 {
-  "name": "swagger-postman",
+  "name": "swagger2-postman",
   "version": "0.0.1",
   "description": "A module to convert swagger 2.0 JSONs to Postman v2.0",
   "main": "convert.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/testscript.js"
   },
   "dependencies": {
     "jsface": "*",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/postmanlabs/swagger-postman.git"
+    "url": "https://github.com/postmanlabs/swagger2-postman.git"
   },
   "keywords": [
     "swagger",
@@ -23,7 +23,7 @@
   "author": "Postman Labs <help@getpostman.com>",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/postmanlabs/swagger-postman/issues"
+    "url": "https://github.com/postmanlabs/swagger2-postman/issues"
   },
-  "homepage": "https://github.com/postmanlabs/swagger-postman"
+  "homepage": "https://github.com/postmanlabs/swagger2-postman"
 }
