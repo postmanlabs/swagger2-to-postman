@@ -8,7 +8,7 @@ function ConvertResult(status, message) {
 }
 
 var Swagger2Postman = jsface.Class({
-	constructor: function(firstName,lastName) {
+	constructor: function() {
 	    this.collectionJson = {
 			"id": "",
 			"name": "",
@@ -25,6 +25,11 @@ var Swagger2Postman = jsface.Class({
         this.collectionId = "";
         this.folders = {};
         this.baseParams = {};
+        this.logger = function(){};
+  	},
+
+  	setLogger: function(func) {
+  		this.logger = func;
   	},
 
   	main: function(Swagger2Postman) {
@@ -70,8 +75,8 @@ var Swagger2Postman = jsface.Class({
 		var segments = pathUrl.split("/");
 		var numSegments = segments.length;
 		var folderName = null;
-		console.log("Getting folder name for path: " + pathUrl);
-		console.log("Segments: " + JSON.stringify(segments));
+		this.logger("Getting folder name for path: " + pathUrl);
+		this.logger("Segments: " + JSON.stringify(segments));
 		if(numSegments>1) {
 			folderName = segments[1];
 
@@ -79,11 +84,11 @@ var Swagger2Postman = jsface.Class({
 			if(!this.folders[folderName]) {
 				this.folders[folderName] = this.createNewFolder(folderName);
 			}
-			console.log("For path " + pathUrl + ", returning folderName " + this.folders[folderName].name);
+			this.logger("For path " + pathUrl + ", returning folderName " + this.folders[folderName].name);
 			return this.folders[folderName].name;
 		}
 		else {
-			console.log("Error - path MUST begin with /");
+			this.logger("Error - path MUST begin with /");
 			return null;
 		}
 	},
@@ -98,7 +103,7 @@ var Swagger2Postman = jsface.Class({
 			"collection_id": this.collectionId,
 			"collection": this.collectionId,
 		};
-		console.log("Created folder " + newFolder.name);
+		this.logger("Created folder " + newFolder.name);
 		return newFolder;
 	},
 
@@ -190,7 +195,7 @@ var Swagger2Postman = jsface.Class({
 		//set data and headers
 		for(param in thisParams) {
 			if(thisParams.hasOwnProperty(param)) {
-				console.log("Processing param: " + JSON.stringify(param));
+				this.logger("Processing param: " + JSON.stringify(param));
 				if(thisParams[param].in === "query") {
 					if(!hasQueryParams) {
 						hasQueryParams = true;
@@ -225,11 +230,16 @@ var Swagger2Postman = jsface.Class({
 
 	addPathItemToFolder: function(path, pathItem, folderName) {
 		if(pathItem["$ref"]) {
-			console.log("Error - cannot handle $ref attributes");
+			this.logger("Error - cannot handle $ref attributes");
 			return;
 		}
 
 		var paramsForPathItem = this.getParamsForPathItem(this.baseParams, pathItem.parameters);
+
+		//replace path variables {petId} with {{..}}
+		if(path) {
+			path = path.replace("{","{{").replace("}","}}");
+		}
 
 		if(pathItem.get) this.addOperationToFolder(path, "GET", pathItem.get, folderName, paramsForPathItem);
 		if(pathItem.put) this.addOperationToFolder(path, "PUT", pathItem.put, folderName, paramsForPathItem);
@@ -250,7 +260,7 @@ var Swagger2Postman = jsface.Class({
 		    if(!folderName) {
 		    	continue;
 		    }
-		    console.log("Adding path item. path = " + path+"   folder = " + folderName);
+		    this.logger("Adding path item. path = " + path+"   folder = " + folderName);
 		    this.addPathItemToFolder(path, paths[path], folderName);
 		  }
 		}
@@ -262,7 +272,7 @@ var Swagger2Postman = jsface.Class({
 			//base params
 			for(var param in params) {
 				if(params.hasOwnProperty(param)) {
-					console.log("Adding collection param: " + param);
+					this.logger("Adding collection param: " + param);
 					this.basePath[param] = params[param];
 				}
 			}
@@ -282,7 +292,7 @@ var Swagger2Postman = jsface.Class({
 		var validationResult = this.validate(json);
 		if(validationResult.status === "failed") {
 			//error
-			return;
+			return validationResult;
 		}
 
 		this.collectionId = uuid.v4();
@@ -298,10 +308,12 @@ var Swagger2Postman = jsface.Class({
 		this.addFoldersToCollection();
 	
 		this.collectionJson.id = this.collectionId;
-		console.log(JSON.stringify(this.collectionJson));
-
-		return this.collectionJson;
+		//this.logger(JSON.stringify(this.collectionJson));
+		this.logger("Swagger converted successfully");
 		
+		validationResult.collection = this.collectionJson;
+		
+		return validationResult;
 	},
 });
 
