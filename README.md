@@ -13,13 +13,17 @@ Optionally, set a logger:
 
 Convert your Swagger 2.0 JSON:
 
-    var convertResult = swaggerConverter.convert(swaggerJson);
+    var convertResult = swaggerConverter.convert(swaggerJson, options);
+
+You can pass through some options:
+    `basePath`: use this property if you want a parameterised url in your request.
+    e.g. `swaggerConverter.convert(swaggerJson, {basePath: "{{myHostUrl}}"});`
+    will produce something like `{{myHostUrl}}/v1/my-route` in your collection
 
 Check the result:
 
-    convertResult.status === "failed" 
+    convertResult.status === "failed"
 for unsuccessful conversions. Check convertResult.message
 
     convertResult.status === "passed"
 for successful conversions. Check convertResult.collection for the Postman collection JSON
-
