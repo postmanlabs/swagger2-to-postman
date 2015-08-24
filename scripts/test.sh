@@ -15,4 +15,4 @@ echo
 echo "Running unit tests..."
 echo "mocha v`mocha --version`";
 
-mocha tests/unit/**/*-spec.js;
+mocha test/*-spec.js;
