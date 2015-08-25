@@ -4,10 +4,10 @@
   "description": "A module to convert swagger 2.0 JSONs to Postman v2.0",
   "main": "convert.js",
   "scripts": {
-    "test": "node test/testscript.js"
+    "test": "scripts/test.sh"
   },
   "dependencies": {
-    "jsface": "*",
+    "jsface": "^2.4.9",
     "lodash": "^3.5.0",
     "node-uuid": "^1.4.3"
   },
@@ -25,5 +25,11 @@
   "bugs": {
     "url": "https://github.com/postmanlabs/swagger2-postman/issues"
   },
-  "homepage": "https://github.com/postmanlabs/swagger2-postman"
+  "homepage": "https://github.com/postmanlabs/swagger2-postman",
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "jscs": "^2.1.0",
+    "jshint": "^2.8.0",
+    "mocha": "^2.2.5"
+  }
 }
