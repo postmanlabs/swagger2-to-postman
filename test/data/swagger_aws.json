@@ -43,9 +43,9 @@
             "id": "awsSigV4",
             "accessKey": "{{aws_access_key_id}}",
             "secretKey": "{{aws_secret_access_key}}",
-            "region": "eu-west-1"
-          },
-          "saveHelper": true
+            "region": "eu-west-1",
+            "saveHelper": true
+          }
         },
         "responses": {
           "200": {
