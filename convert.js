@@ -193,9 +193,11 @@ var uuid = require('node-uuid'),
             request.time = (new Date()).getTime();
 
             // Handle custom swagger attributes for postman aws integration
-            for (requestAttr in operation['x-postman-integration']) {
-                if (operation['x-postman-integration'].hasOwnProperty(requestAttr)) {
-                    request[requestAttr] = operation['x-postman-integration'][requestAttr];
+            if (operation['x-postman-integration']) {
+                for (requestAttr in operation['x-postman-integration']) {
+                    if (operation['x-postman-integration'].hasOwnProperty(requestAttr)) {
+                        request[requestAttr] = operation['x-postman-integration'][requestAttr];
+                    }
                 }
             }
 
