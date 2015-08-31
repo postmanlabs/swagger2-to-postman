@@ -1,5 +1,6 @@
 var uuid = require('node-uuid'),
     jsface = require('jsface'),
+    url = require('url'),
 
     ConvertResult = function (status, message) {
         this.status = status;
@@ -183,12 +184,22 @@ var uuid = require('node-uuid'),
                 },
                 thisParams = this.getParamsForPathItem(params, operation.parameters),
                 hasQueryParams = false,
-                param;
+                param,
+                requestAttr;
 
-            request.url = this.basePath + path;
+            request.url = url.resolve(this.basePath, path);
             request.method = method;
             request.name = operation.summary;
             request.time = (new Date()).getTime();
+
+            // Handle custom swagger attributes for postman aws integration
+            if (operation['x-postman-integration']) {
+                for (requestAttr in operation['x-postman-integration']) {
+                    if (operation['x-postman-integration'].hasOwnProperty(requestAttr)) {
+                        request[requestAttr] = operation['x-postman-integration'][requestAttr];
+                    }
+                }
+            }
 
             // set data and headers
             for (param in thisParams) {
