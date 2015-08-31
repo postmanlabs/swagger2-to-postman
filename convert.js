@@ -1,320 +1,331 @@
-var _ = require('lodash');
-var uuid = require('node-uuid');
-var jsface = require('jsface');
+var uuid = require('node-uuid'),
+    jsface = require('jsface'),
 
-function ConvertResult(status, message) {
-	this.status = status;
-	this.message = message;
-}
+    ConvertResult = function (status, message) {
+        this.status = status;
+        this.message = message;
+    },
 
-var Swagger2Postman = jsface.Class({
-	constructor: function() {
-	    this.collectionJson = {
-			"id": "",
-			"name": "",
-			"description": "",
-			"order": [
-			],
-			"folders": [],
-			"timestamp": 1413302258635,
-			"synced": false,
-			"requests": [
-			]
-		};
-        this.basePath = "";
-        this.collectionId = "";
-        this.folders = {};
-        this.baseParams = {};
-        this.logger = function(){};
-  	},
+    Swagger2Postman = jsface.Class({
+        constructor: function () {
+            this.collectionJson = {
+                'id': '',
+                'name': '',
+                'description': '',
+                'order': [],
+                'folders': [],
+                'timestamp': 1413302258635,
+                'synced': false,
+                'requests': []
+            };
+            this.basePath = '';
+            this.collectionId = '';
+            this.folders = {};
+            this.baseParams = {};
+            this.logger = function () {
+            };
+        },
 
-  	setLogger: function(func) {
-  		this.logger = func;
-  	},
+        setLogger: function (func) {
+            this.logger = func;
+        },
 
-  	main: function(Swagger2Postman) {
+        validate: function (json) {
+            if (!json.hasOwnProperty('swagger') || json.swagger !== '2.0') {
+                return new ConvertResult('failed', 'Must contain a swagger field (2.0)');
+            }
 
-  	},
+            if (!json.hasOwnProperty('info')) {
+                return new ConvertResult('failed', 'Must contain an info object');
+            }
+            else {
+                var info = json.info;
+                if (!info.title) {
+                    return new ConvertResult('failed', 'Must contain info.title');
+                }
+            }
 
-	validate: function(json) {
-		if(!json.hasOwnProperty("swagger") || json.swagger!=="2.0") {
-			return new ConvertResult("failed", "Must contain a swagger field (2.0)");
-		}
+            return new ConvertResult('passed', '');
+        },
 
-		if(!json.hasOwnProperty("info")) {
-			return new ConvertResult("failed", "Must contain an info object");	
-		}
-		else { 
-			var info = json.info;
-			if(!info.title) {
-				return new ConvertResult("failed", "Must contain info.title");
-			}
-		}
+        setBasePath: function (json) {
+            this.basePath = '';
+            if (json.host) {
+                this.basePath = json.host;
+            }
+            if (json.basePath) {
+                this.basePath += json.basePath;
+            }
 
-		return new ConvertResult("passed","");
-	},
+            if (json.schemas && json.schemas.indexOf('https') != -1) {
+                this.basePath = 'https://' + this.basePath;
+            }
+            else {
+                this.basePath = 'http://' + this.basePath;
+            }
+        },
 
-	setBasePath: function(json) {
-		this.basePath = "";
-		if(json.host) {
-			this.basePath = json.host;
-		}
-		if(json.basePath) {
-			this.basePath += json.basePath;
-		}
+        getFolderNameForPath: function (pathUrl) {
+            var segments = pathUrl.split('/'),
+                numSegments = segments.length,
+                folderName = null;
+            this.logger('Getting folder name for path: ' + pathUrl);
+            this.logger('Segments: ' + JSON.stringify(segments));
+            if (numSegments > 1) {
+                folderName = segments[1];
 
-		if(json.schemas && json.schemas.indexOf("https")!=-1) {
-			this.basePath = "https://" + this.basePath;
-		}
-		else {
-			this.basePath = "http://" + this.basePath;
-		}
-	},
+                // create a folder for this path url
+                if (!this.folders[folderName]) {
+                    this.folders[folderName] = this.createNewFolder(folderName);
+                }
+                this.logger('For path ' + pathUrl + ', returning folderName ' + this.folders[folderName].name);
+                return this.folders[folderName].name;
+            }
+            else {
+                this.logger('Error - path MUST begin with /');
+                return null;
+            }
+        },
 
-	getFolderNameForPath: function(pathUrl) {
-		var segments = pathUrl.split("/");
-		var numSegments = segments.length;
-		var folderName = null;
-		this.logger("Getting folder name for path: " + pathUrl);
-		this.logger("Segments: " + JSON.stringify(segments));
-		if(numSegments>1) {
-			folderName = segments[1];
+        createNewFolder: function (name) {
+            var newFolder = {
+                'id': uuid.v4(),
+                'name': name,
+                'description': 'Folder for ' + name,
+                'order': [],
+                'collection_name': this.collectionJson.name,
+                'collection_id': this.collectionId,
+                'collection': this.collectionId
+            };
+            this.logger('Created folder ' + newFolder.name);
+            return newFolder;
+        },
 
-			//create a folder for this path url
-			if(!this.folders[folderName]) {
-				this.folders[folderName] = this.createNewFolder(folderName);
-			}
-			this.logger("For path " + pathUrl + ", returning folderName " + this.folders[folderName].name);
-			return this.folders[folderName].name;
-		}
-		else {
-			this.logger("Error - path MUST begin with /");
-			return null;
-		}
-	},
+        handleInfo: function (json) {
+            this.collectionJson.name = json.info.title;
+            this.collectionJson.description = json.info.description;
+        },
 
-	createNewFolder: function(name) {
-		var newFolder = {
-			"id": uuid.v4(),
-			"name": name,
-			"description": "Folder for " + name,
-			"order": [],
-			"collection_name": this.collectionJson.name,
-			"collection_id": this.collectionId,
-			"collection": this.collectionId,
-		};
-		this.logger("Created folder " + newFolder.name);
-		return newFolder;
-	},
+        getParamsForPathItem: function (oldParams, newParams) {
+            var retVal = {},
+                numOldParams,
+                numNewParams,
+                i,
+                parts,
+                lastPart,
+                getBaseParam;
 
-	handleInfo: function(json) {
-		this.collectionJson.name = json.info.title;
-		this.collectionJson.description = json.info.description;
-	},
+            oldParams = oldParams || [];
+            newParams = newParams || [];
 
-	getParamsForPathItem: function(oldParams, newParams) {
-		if(!oldParams) oldParams = [];
-		if(!newParams) newParams = [];
+            numOldParams = oldParams.length;
+            numNewParams = newParams.length;
 
-		var root = this;
-		var retVal = {};
-		var numOldParams = oldParams.length;
-		var numNewParams = newParams.length;
+            for (i = 0; i < numOldParams; i++) {
+                if (oldParams[i].$ref) {
+                    // this is a ref
+                    if (oldParams[i].$ref.indexOf('#/parameters') === 0) {
+                        parts = oldParams[i].$ref.split('/');
+                        lastPart = parts[parts.length - 1];
+                        getBaseParam = this.baseParams[lastPart];
+                        retVal[lastPart] = getBaseParam;
+                    }
+                }
+                else {
+                    retVal[oldParams[i].name] = oldParams[i];
+                }
+            }
 
-		for(var i=0;i<numOldParams;i++) {
-			if(oldParams[i]["$ref"]) {
-				//this is a ref
-				if(oldParams[i]["$ref"].indexOf("#/parameters") == 0) {
-					var parts = oldParams[i]["$ref"].split("/");
-					var lastPart = parts[parts.length-1];
-					var getBaseParam = this.baseParams[lastPart];
-					retVal[lastPart] = getBaseParam;
-				}
-			}
-			else {	
-				retVal[oldParams[i].name] = oldParams[i];
-			}
-		}
+            for (i = 0; i < numNewParams; i++) {
+                if (newParams[i].$ref) {
+                    // this is a ref
+                    if (newParams[i].$ref.indexOf('#/parameters') === 0) {
+                        parts = newParams[i].$ref.split('/');
+                        lastPart = parts[parts.length - 1];
+                        getBaseParam = this.baseParams[lastPart];
+                        retVal[lastPart] = getBaseParam;
+                    }
+                }
+                else {
+                    retVal[newParams[i].name] = newParams[i];
+                }
+            }
 
-		for(var i=0;i<numNewParams;i++) {
-			if(newParams[i]["$ref"]) {
-				//this is a ref
-				if(newParams[i]["$ref"].indexOf("#/parameters") == 0) {
-					var parts = newParams[i]["$ref"].split("/");
-					var lastPart = parts[parts.length-1];
-					var getBaseParam = this.baseParams[lastPart];
-					retVal[lastPart] = getBaseParam;
-				}
-			}
-			else {	
-				retVal[newParams[i].name] = newParams[i];
-			}
-		}
+            return retVal;
+        },
 
-		return retVal;
-	},
+        addOperationToFolder: function (path, method, operation, folderName, params) {
+            var root = this,
+                request = {
+                    'id': uuid.v4(),
+                    'headers': '',
+                    'url': '',
+                    'pathVariables': {},
+                    'preRequestScript': '',
+                    'method': 'GET',
+                    'data': [
+                        {
+                            'key': 'size',
+                            'value': 'original',
+                            'type': 'text',
+                            'enabled': true
+                        }
+                    ],
+                    'dataMode': 'params',
+                    'description': operation.description || '',
+                    'descriptionFormat': 'html',
+                    'time': '',
+                    'version': 2,
+                    'responses': [],
+                    'tests': '',
+                    'collectionId': root.collectionId,
+                    'synced': false
+                },
+                thisParams = this.getParamsForPathItem(params, operation.parameters),
+                hasQueryParams = false,
+                param;
 
-	addOperationToFolder: function(path, method, operation, folderName, params) {
-		var root = this;
-		var request = {
-				"id": uuid.v4(),
-				"headers": "",
-				"url": "",
-				"pathVariables": {},
-				"preRequestScript": "",
-				"method": "GET",
-				"data": [
-					{
-						"key": "size",
-						"value": "original",
-						"type": "text",
-						"enabled": true
-					}
-				],
-				"dataMode": "params",
-				"description": "",
-				"descriptionFormat": "html",
-				"time": "",
-				"version": 2,
-				"responses": [],
-				"tests": "",
-				"collectionId": root.collectionId,
-				"synced": false
-			};
+            request.url = this.basePath + path;
+            request.method = method;
+            request.name = operation.summary;
+            request.time = (new Date()).getTime();
 
-		request.description = operation.description;
+            // set data and headers
+            for (param in thisParams) {
+                if (thisParams.hasOwnProperty(param)) {
+                    this.logger('Processing param: ' + JSON.stringify(param));
+                    if (thisParams[param].in === 'query') {
+                        if (!hasQueryParams) {
+                            hasQueryParams = true;
+                            request.url += '?';
+                        }
+                        request.url += thisParams[param].name + '={{' + thisParams[param].name + '}}&';
+                    }
 
-		var thisParams = this.getParamsForPathItem(params, operation.parameters);
-		request.url = this.basePath + path;
-		request.method = method;
-		request.name = operation.summary;
-		request.time = (new Date()).getTime();
+                    else if (thisParams[param].in === 'header') {
+                        request.headers += thisParams[param].name + ': {{' + thisParams[param].name + '}}\n';
+                    }
+                    else if (thisParams[param].in === 'formData') {
+                        request.dataMode = 'params';
+                        request.data.push({
+                            'key': thisParams[param].name,
+                            'value': '{{' + thisParams[param].name + '}}',
+                            'type': 'text',
+                            'enabled': true
+                        });
+                    } // (thisParams[param].in === 'path') case not handled
+                }
+            }
 
-		var hasQueryParams = false;
+            this.collectionJson.requests.push(request);
+            this.folders[folderName].order.push(request.id);
+        },
 
-		//set data and headers
-		for(param in thisParams) {
-			if(thisParams.hasOwnProperty(param)) {
-				this.logger("Processing param: " + JSON.stringify(param));
-				if(thisParams[param].in === "query") {
-					if(!hasQueryParams) {
-						hasQueryParams = true;
-						request.url += "?";
-					}
-					request.url += thisParams[param].name + "={{" + thisParams[param].name + "}}&";
-				}
+        addPathItemToFolder: function (path, pathItem, folderName) {
+            if (pathItem.$ref) {
+                this.logger('Error - cannot handle $ref attributes');
+                return;
+            }
 
-				else if(thisParams[param].in==="header") {
-					request.headers += thisParams[param].name + ": {{" + thisParams[param].name + "}}\n";
-				}
+            var paramsForPathItem = this.getParamsForPathItem(this.baseParams, pathItem.parameters);
 
-				else if(thisParams[param].in==="path") {
-					//meh
-				}
+            // replace path variables {petId} with {{..}}
+            if (path) {
+                path = path.replace('{', '{{').replace('}', '}}');
+            }
 
-				else if(thisParams[param].in==="formData") {
-					request.dataMode = "params";
-					request.data.push({
-						"key": thisParams[param].name,
-						"value": "{{" + thisParams[param].name + "}}",
-						"type": "text",
-						"enabled": true
-					});
-				}
-			}
-		}
+            if (pathItem.get) {
+                this.addOperationToFolder(path, 'GET', pathItem.get, folderName, paramsForPathItem);
+            }
+            if (pathItem.put) {
+                this.addOperationToFolder(path, 'PUT', pathItem.put, folderName, paramsForPathItem);
+            }
+            if (pathItem.post) {
+                this.addOperationToFolder(path, 'POST', pathItem.post, folderName, paramsForPathItem);
+            }
+            if (pathItem.delete) {
+                this.addOperationToFolder(path, 'DELETE', pathItem.delete, folderName, paramsForPathItem);
+            }
+            if (pathItem.options) {
+                this.addOperationToFolder(path, 'OPTIONS', pathItem.options, folderName, paramsForPathItem);
+            }
+            if (pathItem.head) {
+                this.addOperationToFolder(path, 'HEAD', pathItem.head, folderName, paramsForPathItem);
+            }
+            if (pathItem.path) {
+                this.addOperationToFolder(path, 'PATH', pathItem.path, folderName, paramsForPathItem);
+            }
+        },
 
-		this.collectionJson.requests.push(request);
-		this.folders[folderName].order.push(request.id);
-	},
+        handlePaths: function (json) {
+            var paths = json.paths,
+                path,
+                folderName;
 
-	addPathItemToFolder: function(path, pathItem, folderName) {
-		if(pathItem["$ref"]) {
-			this.logger("Error - cannot handle $ref attributes");
-			return;
-		}
+            // Add a folder for each path
+            for (path in paths) {
+                if (paths.hasOwnProperty(path)) {
+                    folderName = this.getFolderNameForPath(path);
+                    if (!folderName) {
+                        continue;
+                    }
+                    this.logger('Adding path item. path = ' + path + '   folder = ' + folderName);
+                    this.addPathItemToFolder(path, paths[path], folderName);
+                }
+            }
+        },
 
-		var paramsForPathItem = this.getParamsForPathItem(this.baseParams, pathItem.parameters);
+        handleParams: function (params, level) {
+            if (!params) {
+                return;
+            }
+            if (level === 'collection') {
+                // base params
+                for (var param in params) {
+                    if (params.hasOwnProperty(param)) {
+                        this.logger('Adding collection param: ' + param);
+                        this.basePath[param] = params[param];
+                    }
+                }
+            }
+        },
 
-		//replace path variables {petId} with {{..}}
-		if(path) {
-			path = path.replace("{","{{").replace("}","}}");
-		}
+        addFoldersToCollection: function () {
+            var folderName;
+            for (folderName in this.folders) {
+                if (this.folders.hasOwnProperty(folderName)) {
+                    this.collectionJson.folders.push(this.folders[folderName]);
+                }
+            }
+        },
 
-		if(pathItem.get) this.addOperationToFolder(path, "GET", pathItem.get, folderName, paramsForPathItem);
-		if(pathItem.put) this.addOperationToFolder(path, "PUT", pathItem.put, folderName, paramsForPathItem);
-		if(pathItem.post) this.addOperationToFolder(path, "POST", pathItem.post, folderName, paramsForPathItem);
-		if(pathItem.delete) this.addOperationToFolder(path, "DELETE", pathItem.delete, folderName, paramsForPathItem);
-		if(pathItem.options) this.addOperationToFolder(path, "OPTIONS", pathItem.options, folderName, paramsForPathItem);
-		if(pathItem.head) this.addOperationToFolder(path, "HEAD", pathItem.head, folderName, paramsForPathItem);
-		if(pathItem.path) this.addOperationToFolder(path, "PATH", pathItem.path, folderName, paramsForPathItem);
-	},
+        convert: function (json) {
+            var validationResult = this.validate(json);
+            if (validationResult.status === 'failed') {
+                // error
+                return validationResult;
+            }
 
-	handlePaths: function(json) {
-		var paths = json.paths;
+            this.collectionId = uuid.v4();
 
-		//Add a folder for each path
-		for(var path in paths){
-		  if (paths.hasOwnProperty(path)) { 
-		    var folderName = this.getFolderNameForPath(path);
-		    if(!folderName) {
-		    	continue;
-		    }
-		    this.logger("Adding path item. path = " + path+"   folder = " + folderName);
-		    this.addPathItemToFolder(path, paths[path], folderName);
-		  }
-		}
-	},
+            this.handleParams(json.parameters, 'collection');
 
-	handleParams: function(params, level) {
-		if(!params) return;
-		if(level === "collection") {
-			//base params
-			for(var param in params) {
-				if(params.hasOwnProperty(param)) {
-					this.logger("Adding collection param: " + param);
-					this.basePath[param] = params[param];
-				}
-			}
-			return;
-		}
-	},
+            this.handleInfo(json);
 
-	addFoldersToCollection: function() {
-		for(folderName in this.folders) {
-			if(this.folders.hasOwnProperty(folderName)) {
-				this.collectionJson.folders.push(this.folders[folderName]);
-			}
-		}
-	},
+            this.setBasePath(json);
 
-	convert: function(json) {
-		var validationResult = this.validate(json);
-		if(validationResult.status === "failed") {
-			//error
-			return validationResult;
-		}
+            this.handlePaths(json);
 
-		this.collectionId = uuid.v4();
+            this.addFoldersToCollection();
 
-		this.handleParams(json.parameters, "collection")
+            this.collectionJson.id = this.collectionId;
+            // this.logger(JSON.stringify(this.collectionJson));
+            this.logger('Swagger converted successfully');
 
-		this.handleInfo(json);
+            validationResult.collection = this.collectionJson;
 
-		this.setBasePath(json);
-
-		this.handlePaths(json);
-
-		this.addFoldersToCollection();
-	
-		this.collectionJson.id = this.collectionId;
-		//this.logger(JSON.stringify(this.collectionJson));
-		this.logger("Swagger converted successfully");
-		
-		validationResult.collection = this.collectionJson;
-		
-		return validationResult;
-	},
-});
+            return validationResult;
+        }
+    });
 
 module.exports = Swagger2Postman;
