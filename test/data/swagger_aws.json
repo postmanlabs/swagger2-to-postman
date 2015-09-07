@@ -37,7 +37,7 @@
         "tags": [
           "Auth"
         ],
-        "x-postman-integration": {
+        "x-postman-meta": {
           "currentHelper": "awsSigV4",
           "helperAttributes": {
             "accessKey": "{{aws_access_key_id}}",

@@ -17,4 +17,14 @@ describe('the converter', function () {
             expect(convertResult.status).to.be('passed');
         });
     });
+
+    it('must read values from the "x-postman-meta" key', function () {
+        var samplePath = path.join(__dirname, 'data', 'swagger_aws.json'),
+            swagger = require(samplePath),
+            converter = new Swagger2Postman(),
+            convertResult = converter.convert(swagger);
+        // Make sure that currentHelper and helperAttributes are processed
+        expect(convertResult.collection.requests[0]).to.have.key('currentHelper');
+        expect(convertResult.collection.requests[0]).to.have.key('helperAttributes');
+    });
 });
