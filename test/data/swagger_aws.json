@@ -40,10 +40,10 @@
         "x-postman-integration": {
           "currentHelper": "awsSigV4",
           "helperAttributes": {
-            "id": "awsSigV4",
             "accessKey": "{{aws_access_key_id}}",
             "secretKey": "{{aws_secret_access_key}}",
             "region": "eu-west-1",
+            "service": "execute-api",
             "saveHelper": true
           }
         },

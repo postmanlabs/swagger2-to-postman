@@ -2,6 +2,8 @@ var uuid = require('node-uuid'),
     jsface = require('jsface'),
     url = require('url'),
 
+    META_KEY = 'x-postman-meta',
+
     ConvertResult = function (status, message) {
         this.status = status;
         this.message = message;
@@ -193,10 +195,10 @@ var uuid = require('node-uuid'),
             request.time = (new Date()).getTime();
 
             // Handle custom swagger attributes for postman aws integration
-            if (operation['x-postman-integration']) {
-                for (requestAttr in operation['x-postman-integration']) {
-                    if (operation['x-postman-integration'].hasOwnProperty(requestAttr)) {
-                        request[requestAttr] = operation['x-postman-integration'][requestAttr];
+            if (operation[META_KEY]) {
+                for (requestAttr in operation[META_KEY]) {
+                    if (operation[META_KEY].hasOwnProperty(requestAttr)) {
+                        request[requestAttr] = operation[META_KEY][requestAttr];
                     }
                 }
             }
