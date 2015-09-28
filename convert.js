@@ -58,7 +58,7 @@ var uuid = require('node-uuid'),
                 this.basePath += json.basePath;
             }
 
-            if (json.schemas && json.schemas.indexOf('https') != -1) {
+            if (json.schemes && json.schemes.indexOf('https') != -1) {
                 this.basePath = 'https://' + this.basePath;
             }
             else {
@@ -203,9 +203,9 @@ var uuid = require('node-uuid'),
 
             // set data and headers
             for (param in thisParams) {
-                if (thisParams.hasOwnProperty(param)) {
+                if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
-                    if (thisParams[param].in === 'query') {
+                    if (thisParams[param].in === "query") {
                         if (!hasQueryParams) {
                             hasQueryParams = true;
                             request.url += '?';
@@ -213,10 +213,11 @@ var uuid = require('node-uuid'),
                         request.url += thisParams[param].name + '={{' + thisParams[param].name + '}}&';
                     }
 
-                    else if (thisParams[param].in === 'header') {
+                    else if (thisParams[param].in==="header") {
                         request.headers += thisParams[param].name + ': {{' + thisParams[param].name + '}}\n';
                     }
-                    else if (thisParams[param].in === 'formData') {
+
+                    else if (thisParams[param].in==="formData") {
                         request.dataMode = 'params';
                         request.data.push({
                             'key': thisParams[param].name,
@@ -295,7 +296,7 @@ var uuid = require('node-uuid'),
                 for (var param in params) {
                     if (params.hasOwnProperty(param)) {
                         this.logger('Adding collection param: ' + param);
-                        this.basePath[param] = params[param];
+                        this.baseParams[param] = params[param];
                     }
                 }
             }
