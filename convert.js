@@ -187,7 +187,7 @@ var uuid = require('node-uuid'),
                 param,
                 requestAttr;
 
-            request.url = url.resolve(this.basePath, path);
+            request.url = unescape(url.resolve(this.basePath, path));
             request.method = method;
             request.name = operation.summary;
             request.time = (new Date()).getTime();
