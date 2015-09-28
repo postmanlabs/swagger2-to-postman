@@ -205,7 +205,7 @@ var uuid = require('node-uuid'),
             for (param in thisParams) {
                 if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
-                    if (thisParams[param].in === "query") {
+                    if (thisParams[param].in === 'query') {
                         if (!hasQueryParams) {
                             hasQueryParams = true;
                             request.url += '?';
@@ -213,11 +213,11 @@ var uuid = require('node-uuid'),
                         request.url += thisParams[param].name + '={{' + thisParams[param].name + '}}&';
                     }
 
-                    else if (thisParams[param].in === "header") {
+                    else if (thisParams[param].in === 'header') {
                         request.headers += thisParams[param].name + ': {{' + thisParams[param].name + '}}\n';
                     }
 
-                    else if (thisParams[param].in === "formData") {
+                    else if (thisParams[param].in === 'formData') {
                         request.dataMode = 'params';
                         request.data.push({
                             'key': thisParams[param].name,
