@@ -1,7 +1,6 @@
 var uuid = require('node-uuid'),
     jsface = require('jsface'),
     url = require('url'),
-
     META_KEY = 'x-postman-meta',
 
     ConvertResult = function (status, message) {
