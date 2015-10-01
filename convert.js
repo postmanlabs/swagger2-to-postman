@@ -59,7 +59,7 @@ var uuid = require('node-uuid'),
                 this.basePath += json.basePath;
             }
 
-            if (json.schemas && json.schemas.indexOf('https') != -1) {
+            if (json.schemes && json.schemes.indexOf('https') != -1) {
                 this.basePath = 'https://' + this.basePath;
             }
             else {
@@ -188,7 +188,7 @@ var uuid = require('node-uuid'),
                 param,
                 requestAttr;
 
-            request.url = url.resolve(this.basePath, path);
+            request.url = decodeURI(url.resolve(this.basePath, path));
             request.method = method;
             request.name = operation.summary;
             request.time = (new Date()).getTime();
@@ -204,7 +204,7 @@ var uuid = require('node-uuid'),
 
             // set data and headers
             for (param in thisParams) {
-                if (thisParams.hasOwnProperty(param)) {
+                if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
                     if (thisParams[param].in === 'query') {
                         if (!hasQueryParams) {
@@ -217,6 +217,7 @@ var uuid = require('node-uuid'),
                     else if (thisParams[param].in === 'header') {
                         request.headers += thisParams[param].name + ': {{' + thisParams[param].name + '}}\n';
                     }
+
                     else if (thisParams[param].in === 'formData') {
                         request.dataMode = 'params';
                         request.data.push({
@@ -296,7 +297,7 @@ var uuid = require('node-uuid'),
                 for (var param in params) {
                     if (params.hasOwnProperty(param)) {
                         this.logger('Adding collection param: ' + param);
-                        this.basePath[param] = params[param];
+                        this.baseParams[param] = params[param];
                     }
                 }
             }
