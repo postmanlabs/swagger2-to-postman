@@ -192,9 +192,9 @@ var uuid = require('node-uuid'),
                 param,
                 requestAttr;
 
-            if(path.length>0 && path[0]==='/') {
+            if (path.length > 0 && path[0] === '/') {
                 path = path.substring(1);
-            } 
+            }
             request.url = decodeURI(url.resolve(this.basePath, path));
             request.method = method;
             request.name = operation.summary;
@@ -347,7 +347,7 @@ var uuid = require('node-uuid'),
             return validationResult;
         },
 
-        //since travis doesnt support es6
+        // since travis doesnt support es6
         endsWith: function (str, suffix) {
             return str.indexOf(suffix, str.length - suffix.length) !== -1;
         }
