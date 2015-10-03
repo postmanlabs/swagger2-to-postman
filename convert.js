@@ -237,6 +237,10 @@ var uuid = require('node-uuid'),
                 }
             }
 
+            if (hasQueryParams && this.endsWith(request.url, '&')) {
+                request.url = request.url.slice(0, -1);
+            }
+
             this.collectionJson.requests.push(request);
             this.folders[folderName].order.push(request.id);
         },
