@@ -66,7 +66,7 @@ var uuid = require('node-uuid'),
                 this.basePath = 'http://' + this.basePath;
             }
 
-            if(!this.basePath.endsWith('/')) {
+            if (!this.basePath.endsWith('/')) {
                 this.basePath += '/';
             }
         },
