@@ -65,6 +65,10 @@ var uuid = require('node-uuid'),
             else {
                 this.basePath = 'http://' + this.basePath;
             }
+
+            if(!this.basePath.endsWith('/')) {
+                this.basePath += '/';
+            }
         },
 
         getFolderNameForPath: function (pathUrl) {
