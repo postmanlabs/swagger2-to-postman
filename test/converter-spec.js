@@ -3,7 +3,7 @@ var expect = require('expect.js'),
     fs = require('fs'),
     path = require('path');
 
-/* global describe, it, expect */
+/* global describe, it */
 describe('the converter', function () {
     var samples = fs.readdirSync(path.join(__dirname, 'data'));
 
