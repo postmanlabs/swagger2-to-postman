@@ -169,14 +169,7 @@ var uuid = require('node-uuid'),
                     'pathVariables': {},
                     'preRequestScript': '',
                     'method': 'GET',
-                    'data': [
-                        {
-                            'key': 'size',
-                            'value': 'original',
-                            'type': 'text',
-                            'enabled': true
-                        }
-                    ],
+                    'data': [],
                     'dataMode': 'params',
                     'description': operation.description || '',
                     'descriptionFormat': 'html',
