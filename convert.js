@@ -67,6 +67,9 @@ var uuid = require('node-uuid'),
         },
 
         getFolderNameForPath: function (pathUrl) {
+            if(pathUrl == "/") {
+                return null;
+            }
             var segments = pathUrl.split('/'),
                 numSegments = segments.length,
                 folderName = null;
@@ -235,7 +238,12 @@ var uuid = require('node-uuid'),
             }
 
             this.collectionJson.requests.push(request);
-            this.folders[folderName].order.push(request.id);
+            if(folderName !== null) {
+                this.folders[folderName].order.push(request.id);
+            }
+            else {
+                this.collectionJson.order.push(request.id);
+            }
         },
 
         addPathItemToFolder: function (path, pathItem, folderName) {
@@ -283,9 +291,6 @@ var uuid = require('node-uuid'),
             for (path in paths) {
                 if (paths.hasOwnProperty(path)) {
                     folderName = this.getFolderNameForPath(path);
-                    if (!folderName) {
-                        continue;
-                    }
                     this.logger('Adding path item. path = ' + path + '   folder = ' + folderName);
                     this.addPathItemToFolder(path, paths[path], folderName);
                 }
