@@ -72,7 +72,7 @@ var uuid = require('node-uuid'),
         },
 
         getFolderNameForPath: function (pathUrl) {
-            if(pathUrl == "/") {
+            if (pathUrl == '/') {
                 return null;
             }
             var segments = pathUrl.split('/'),
@@ -243,7 +243,7 @@ var uuid = require('node-uuid'),
             }
 
             this.collectionJson.requests.push(request);
-            if(folderName !== null) {
+            if (folderName !== null) {
                 this.folders[folderName].order.push(request.id);
             }
             else {
