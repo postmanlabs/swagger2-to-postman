@@ -226,7 +226,7 @@ var uuid = require('node-uuid'),
                         request.data = thisParams[param].description;
                     }
 
-                    else if (thisParams[param].in === 'form') {
+                    else if (thisParams[param].in === 'formData') {
                         request.dataMode = 'params';
                         request.data.push({
                             'key': thisParams[param].name,
