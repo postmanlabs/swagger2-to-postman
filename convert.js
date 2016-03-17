@@ -43,7 +43,7 @@ var uuid = require('node-uuid'),
             }
             else {
                 var info = json.info;
-                if (!info.title) {
+                if (!info || !info.title) {
                     return new ConvertResult('failed', 'Must contain info.title');
                 }
             }
