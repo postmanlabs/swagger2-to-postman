@@ -49,6 +49,78 @@
           }
         }
       }
+    },
+    "Data/Article": {
+      "post": {
+        "summary": "get info from the system",
+        "description": "",
+        "operationId": "infoAPI",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [{
+          "name": "Input",
+          "in": "body",
+          "required": true,
+          "schema": {
+            "$ref": "#/definitions/articleRequestInput"
+          },
+          "description": "damien"
+        }],
+        "responses": {
+          "201": {
+            "description": "API Response when article post succed",
+            "schema": {
+              "$ref": "#/definitions/articleRequestOutput"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "articleRequestInput": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "description": "article title",
+          "type": "string",
+          "maxLength": 60
+        },
+        "writer": {
+          "description": "writer name",
+          "type": "string",
+          "maxLength": 270
+        },
+        "kind": {
+          "description": "kind of article",
+          "type": "string",
+          "maxLength": 255
+        }
+      },
+      "required":["title","writer"],
+      "example":{
+        "title": "Postman To Swagger is so cool!",
+        "writer": "damien"
+      }
+    },
+    "articleRequestOutput": {
+      "type": "object",
+      "properties": {
+        "Publishing": {
+          "description": "Publishing information",
+          "type": "string",
+          "maxLength": 255
+        },
+        "note": {
+          "description": "article given note",
+          "type": "number"
+        }
+      },
+      "required":["note"],
+      "example":{
+        "note": "5/5"
+      }
     }
   }
 }
