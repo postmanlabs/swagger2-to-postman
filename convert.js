@@ -1,6 +1,7 @@
 var uuid = require('node-uuid'),
     jsface = require('jsface'),
     url = require('url'),
+    _ = require('lodash'),
     META_KEY = 'x-postman-meta',
 
     ConvertResult = function (status, message) {
@@ -163,7 +164,39 @@ var uuid = require('node-uuid'),
             return retVal;
         },
 
-        addOperationToFolder: function (path, method, operation, folderName, params) {
+        getSchemaFromRef: function(ref, definition) {
+            if(definition && ref){
+                if(ref.indexOf("#/definitions/")>-1){
+                    var definitionKey = ref.split("/").pop();
+                    if(definitionKey){
+                        return definition[definitionKey];
+                    }
+                }
+            }
+        },
+
+        generateTestsFromSpec: function(status, response, definitions,url){
+            var tests="";
+            if(response && response.schema){
+                var schema = this.getSchemaFromRef(response.schema.$ref, definitions)
+                if(schema && schema.type){
+
+                    this.logger('Adding Test for: ' + url);
+                    tests+='tests["Status code is '+status+'"] = responseCode.code === '+status+';\n';
+                    tests+='if(responseCode.code === '+status+'){\n';
+                    tests+="\tvar data = JSON.parse(responseBody);\n";
+                    tests+="\tvar schema="+JSON.stringify(schema,null,4)+";\n";
+                    tests+='\ttests["Response Body respect JSON schema documentation"] = tv4.validate(data, schema);\n'
+                    tests+='\tif(tests["Response Body respect JSON schema documentation"] === false){\n';
+                    tests+='\t\tconsole.log(tv4.error);\n';
+                    tests+="\t}\n";
+                    tests+="}\n";
+                }
+            }
+            return tests;
+        },
+
+        addOperationToFolder: function (path, method, operation, folderName, params, definitions) {
             var root = this,
                 request = {
                     'id': uuid.v4(),
@@ -184,6 +217,7 @@ var uuid = require('node-uuid'),
                     'synced': false
                 },
                 thisParams = this.getParamsForPathItem(params, operation.parameters),
+                thisResponses = operation.responses,
                 hasQueryParams = false,
                 param,
                 requestAttr;
@@ -205,7 +239,7 @@ var uuid = require('node-uuid'),
                 }
             }
 
-            // set data and headers
+            // set body data and headers
             for (param in thisParams) {
                 if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
@@ -223,7 +257,18 @@ var uuid = require('node-uuid'),
 
                     else if (thisParams[param].in === 'body') {
                         request.dataMode = 'raw';
-                        request.data = thisParams[param].description;
+                        if(thisParams[param].schema){
+                            var schema = thisParams[param].schema;
+                            if(schema.$ref){
+                                schema = this.getSchemaFromRef(schema.$ref, definitions)
+                            }
+                            if(schema && schema.example){
+                                request.data = JSON.stringify(schema.example,null,4);
+                            }
+                        }
+                        if(!request.data || request.data === ""){
+                            request.data = thisParams[param].description;
+                        }
                     }
 
                     else if (thisParams[param].in === 'formData') {
@@ -238,6 +283,13 @@ var uuid = require('node-uuid'),
                 }
             }
 
+            // set test in case of success
+            _.forEach(thisResponses,(response,status) => {
+                if(Number(status) >= 200 && Number(status) < 300){
+                    request.tests=this.generateTestsFromSpec(status,response,definitions,request.url);
+                }
+            });
+
             if (hasQueryParams && this.endsWith(request.url, '&')) {
                 request.url = request.url.slice(0, -1);
             }
@@ -251,7 +303,7 @@ var uuid = require('node-uuid'),
             }
         },
 
-        addPathItemToFolder: function (path, pathItem, folderName) {
+        addPathItemToFolder: function (path, pathItem, folderName, definitions) {
             if (pathItem.$ref) {
                 this.logger('Error - cannot handle $ref attributes');
                 return;
@@ -265,30 +317,31 @@ var uuid = require('node-uuid'),
             }
 
             if (pathItem.get) {
-                this.addOperationToFolder(path, 'GET', pathItem.get, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'GET', pathItem.get, folderName, paramsForPathItem, definitions);
             }
             if (pathItem.put) {
-                this.addOperationToFolder(path, 'PUT', pathItem.put, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'PUT', pathItem.put, folderName, paramsForPathItem, definitions);
             }
             if (pathItem.post) {
-                this.addOperationToFolder(path, 'POST', pathItem.post, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'POST', pathItem.post, folderName, paramsForPathItem, definitions);
             }
             if (pathItem.delete) {
-                this.addOperationToFolder(path, 'DELETE', pathItem.delete, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'DELETE', pathItem.delete, folderName, paramsForPathItem, definitions);
             }
             if (pathItem.options) {
-                this.addOperationToFolder(path, 'OPTIONS', pathItem.options, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'OPTIONS', pathItem.options, folderName, paramsForPathItem, definitions);
             }
             if (pathItem.head) {
-                this.addOperationToFolder(path, 'HEAD', pathItem.head, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'HEAD', pathItem.head, folderName, paramsForPathItem, definitions);
             }
             if (pathItem.path) {
-                this.addOperationToFolder(path, 'PATH', pathItem.path, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'PATH', pathItem.path, folderName, paramsForPathItem, definitions);
             }
         },
 
         handlePaths: function (json) {
             var paths = json.paths,
+                definitions = json.definitions,
                 path,
                 folderName;
 
@@ -297,7 +350,7 @@ var uuid = require('node-uuid'),
                 if (paths.hasOwnProperty(path)) {
                     folderName = this.getFolderNameForPath(path);
                     this.logger('Adding path item. path = ' + path + '   folder = ' + folderName);
-                    this.addPathItemToFolder(path, paths[path], folderName);
+                    this.addPathItemToFolder(path, paths[path], folderName, definitions);
                 }
             }
         },
