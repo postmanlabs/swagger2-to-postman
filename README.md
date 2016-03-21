@@ -17,9 +17,23 @@ Convert your Swagger 2.0 JSON:
 
 Check the result:
 
-    convertResult.status === "failed" 
+    convertResult.status === "failed"
 for unsuccessful conversions. Check convertResult.message
 
     convertResult.status === "passed"
 for successful conversions. Check convertResult.collection for the Postman collection JSON
 
+
+Optional Configuration Parameters:
+The constructor can also take in a map of configuration options
+
+~~~
+var options = {
+  includeQueryParams: false
+};
+
+var swaggerConverter = new Swagger2Postman(options);
+~~~
+
+valid options are:
+includeQueryParams - (default true) Include query string parameters in the request url.
