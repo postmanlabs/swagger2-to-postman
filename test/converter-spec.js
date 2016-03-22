@@ -38,9 +38,27 @@ describe('the converter', function () {
             convertWithOptionsResult = converterWithOptions.convert(swagger),
             converterWithoutOptions = new Swagger2Postman(),
             convertWithoutOptionsResult = converterWithoutOptions.convert(swagger);
-        // Make sure that currentHelper and helperAttributes are processed
-
         expect(convertWithOptionsResult.collection.requests[3].url.indexOf('{') == -1);
         expect(convertWithoutOptionsResult.collection.requests[3].url.indexOf('{') > 0);
+    });
+
+    it('should obey the tagFilter option', function () {
+        var options = {
+                tagFilter: 'FOO'
+            },
+            validoptions = {
+                tagFilter: 'SampleTag'
+            },
+            samplePath = path.join(__dirname, 'data', 'swagger2.json'),
+            swagger = require(samplePath),
+            converterWithOptions = new Swagger2Postman(options),
+            convertWithOptionsResult = converterWithOptions.convert(swagger),
+            converterWithValidOptions = new Swagger2Postman(validoptions),
+            convertWithValidOptionsResult = converterWithValidOptions.convert(swagger),
+            converterWithoutOptions = new Swagger2Postman(),
+            convertWithoutOptionsResult = converterWithoutOptions.convert(swagger);
+        expect(convertWithOptionsResult.collection.requests.length === 0);
+        expect(convertWithValidOptionsResult.collection.requests.length > 0);
+        expect(convertWithoutOptionsResult.collection.requests.length > 0);
     });
 });
