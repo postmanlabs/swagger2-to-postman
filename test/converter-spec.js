@@ -56,7 +56,6 @@ describe('the converter', function () {
             convertWithoutOptionsResult = converterWithoutOptions.convert(swagger);
         // Make sure that currentHelper and helperAttributes are processed
 
-        console.log(convertWithOptionsResult.collection.requests[0]);
         expect(convertWithOptionsResult.collection.requests[0].data.indexOf('{') === 0);
         expect(convertWithoutOptionsResult.collection.requests[0].data.indexOf('{') === -1);
     });

@@ -283,7 +283,6 @@ var uuid = require('node-uuid'),
                         if (this.options.includeBodyTemplate === true &&
                             thisParams[param].schema.$ref) {
                             request.data = this.getModelTemplate(json, thisParams[param].schema.$ref, 0);
-                            console.log(request.data);
                         }
                         else {
                             request.data = thisParams[param].description;
