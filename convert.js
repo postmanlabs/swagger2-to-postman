@@ -31,6 +31,9 @@ var uuid = require('node-uuid'),
 
             this.options.includeQueryParams = typeof (this.options.includeQueryParams) == 'undefined' ?
                                                         true : this.options.includeQueryParams;
+
+            this.options.includeBodyTemplate = typeof (this.options.includeBodyTemplate) == 'undefined' ?
+                                                        false : this.options.includeBodyTemplate;
         },
 
         setLogger: function (func) {
@@ -168,7 +171,56 @@ var uuid = require('node-uuid'),
             return retVal;
         },
 
-        addOperationToFolder: function (path, method, operation, folderName, params) {
+        getDefaultValue: function (type) {
+            switch (type) {
+                case 'integer': {
+                    return 0;
+                }
+                case 'array': {
+                    return '[]';
+                }
+                case 'boolean': {
+                    return true;
+                }
+                case 'string': {
+                    return '""';
+                }
+                default: {
+                    return '{}';
+                }
+            }
+        },
+
+        getModelTemplate: function (json, modelName, depth) {
+            if (depth > 1) {
+                return '{}';
+            }
+
+            modelName = modelName.replace('#/definitions/', '');
+
+            var definition = [],
+                properties = json.definitions[modelName].properties,
+                name,
+                defaultValue;
+
+            for (name in properties) {
+                defaultValue = '""';
+                if (properties[name].$ref) {
+                    defaultValue = this.getModelTemplate(json, properties[name].$ref, depth + 1);
+                }
+                else {
+                    defaultValue = this.getDefaultValue(properties[name].type);
+                }
+
+                if (properties[name].readOnly !== true) {
+                    definition.push('"' + name + '" : ' + defaultValue );
+                }
+            }
+
+            return JSON.stringify(JSON.parse('{' + definition.join(',') + '}'), null, '   ');
+        },
+
+        addOperationToFolder: function (path, method, operation, folderName, params, json) {
             var root = this,
                 request = {
                     'id': uuid.v4(),
@@ -228,7 +280,13 @@ var uuid = require('node-uuid'),
 
                     else if (thisParams[param].in === 'body') {
                         request.dataMode = 'raw';
-                        request.data = thisParams[param].description;
+                        if (this.options.includeBodyTemplate === true &&
+                            thisParams[param].schema.$ref) {
+                            request.data = this.getModelTemplate(json, thisParams[param].schema.$ref, 0);
+                        }
+                        else {
+                            request.data = thisParams[param].description;
+                        }
                     }
 
                     else if (thisParams[param].in === 'formData') {
@@ -256,7 +314,7 @@ var uuid = require('node-uuid'),
             }
         },
 
-        addPathItemToFolder: function (path, pathItem, folderName) {
+        addPathItemToFolder: function (path, pathItem, folderName, json) {
             if (pathItem.$ref) {
                 this.logger('Error - cannot handle $ref attributes');
                 return;
@@ -270,25 +328,25 @@ var uuid = require('node-uuid'),
             }
 
             if (pathItem.get) {
-                this.addOperationToFolder(path, 'GET', pathItem.get, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'GET', pathItem.get, folderName, paramsForPathItem, json);
             }
             if (pathItem.put) {
-                this.addOperationToFolder(path, 'PUT', pathItem.put, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'PUT', pathItem.put, folderName, paramsForPathItem, json);
             }
             if (pathItem.post) {
-                this.addOperationToFolder(path, 'POST', pathItem.post, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'POST', pathItem.post, folderName, paramsForPathItem, json);
             }
             if (pathItem.delete) {
-                this.addOperationToFolder(path, 'DELETE', pathItem.delete, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'DELETE', pathItem.delete, folderName, paramsForPathItem, json);
             }
             if (pathItem.options) {
-                this.addOperationToFolder(path, 'OPTIONS', pathItem.options, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'OPTIONS', pathItem.options, folderName, paramsForPathItem, json);
             }
             if (pathItem.head) {
-                this.addOperationToFolder(path, 'HEAD', pathItem.head, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'HEAD', pathItem.head, folderName, paramsForPathItem, json);
             }
             if (pathItem.path) {
-                this.addOperationToFolder(path, 'PATH', pathItem.path, folderName, paramsForPathItem);
+                this.addOperationToFolder(path, 'PATH', pathItem.path, folderName, paramsForPathItem, json);
             }
         },
 
@@ -302,7 +360,7 @@ var uuid = require('node-uuid'),
                 if (paths.hasOwnProperty(path)) {
                     folderName = this.getFolderNameForPath(path);
                     this.logger('Adding path item. path = ' + path + '   folder = ' + folderName);
-                    this.addPathItemToFolder(path, paths[path], folderName);
+                    this.addPathItemToFolder(path, paths[path], folderName, json);
                 }
             }
         },
