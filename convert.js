@@ -334,7 +334,7 @@ var uuid = require('node-uuid'),
         addFoldersToCollection: function () {
             var folderName;
             for (folderName in this.folders) {
-                if (this.folders.hasOwnProperty(folderName)) {
+                if (this.folders.hasOwnProperty(folderName) && this.folders[folderName].order.length > 0) {
                     this.collectionJson.folders.push(this.folders[folderName]);
                 }
             }
