@@ -9,7 +9,7 @@ var uuid = require('node-uuid'),
     },
 
     Swagger2Postman = jsface.Class({
-        constructor: function () {
+        constructor: function (options) {
             this.collectionJson = {
                 'id': '',
                 'name': '',
@@ -26,6 +26,11 @@ var uuid = require('node-uuid'),
             this.baseParams = {};
             this.logger = function () {
             };
+
+            this.options = options || {};
+
+            this.options.includeQueryParams = typeof (this.options.includeQueryParams) == 'undefined' ?
+                                                        true : this.options.includeQueryParams;
         },
 
         setLogger: function (func) {
@@ -209,7 +214,7 @@ var uuid = require('node-uuid'),
             for (param in thisParams) {
                 if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
-                    if (thisParams[param].in === 'query') {
+                    if (thisParams[param].in === 'query' && this.options.includeQueryParams !== false) {
                         if (!hasQueryParams) {
                             hasQueryParams = true;
                             request.url += '?';
