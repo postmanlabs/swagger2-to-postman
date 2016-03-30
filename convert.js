@@ -9,7 +9,7 @@ var uuid = require('node-uuid'),
     },
 
     Swagger2Postman = jsface.Class({
-        constructor: function () {
+        constructor: function (options) {
             this.collectionJson = {
                 'id': '',
                 'name': '',
@@ -26,6 +26,11 @@ var uuid = require('node-uuid'),
             this.baseParams = {};
             this.logger = function () {
             };
+
+            this.options = options || {};
+
+            this.options.includeQueryParams = typeof (this.options.includeQueryParams) == 'undefined' ?
+                                                        true : this.options.includeQueryParams;
         },
 
         setLogger: function (func) {
@@ -209,7 +214,7 @@ var uuid = require('node-uuid'),
             for (param in thisParams) {
                 if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
-                    if (thisParams[param].in === 'query') {
+                    if (thisParams[param].in === 'query' && this.options.includeQueryParams !== false) {
                         if (!hasQueryParams) {
                             hasQueryParams = true;
                             request.url += '?';
@@ -257,33 +262,30 @@ var uuid = require('node-uuid'),
                 return;
             }
 
-            var paramsForPathItem = this.getParamsForPathItem(this.baseParams, pathItem.parameters);
+            var paramsForPathItem = this.getParamsForPathItem(this.baseParams, pathItem.parameters),
+                acceptedPostmanVerbs = [
+                    'get', 'put', 'post', 'patch', 'delete', 'copy', 'head', 'options',
+                    'link', 'unlink', 'purge', 'lock', 'unlock', 'propfind', 'view'],
+                numVerbs = acceptedPostmanVerbs.length,
+                i,
+                verb;
 
             // replace path variables {petId} with {{..}}
             if (path) {
                 path = path.replace('{', '{{').replace('}', '}}');
             }
 
-            if (pathItem.get) {
-                this.addOperationToFolder(path, 'GET', pathItem.get, folderName, paramsForPathItem);
-            }
-            if (pathItem.put) {
-                this.addOperationToFolder(path, 'PUT', pathItem.put, folderName, paramsForPathItem);
-            }
-            if (pathItem.post) {
-                this.addOperationToFolder(path, 'POST', pathItem.post, folderName, paramsForPathItem);
-            }
-            if (pathItem.delete) {
-                this.addOperationToFolder(path, 'DELETE', pathItem.delete, folderName, paramsForPathItem);
-            }
-            if (pathItem.options) {
-                this.addOperationToFolder(path, 'OPTIONS', pathItem.options, folderName, paramsForPathItem);
-            }
-            if (pathItem.head) {
-                this.addOperationToFolder(path, 'HEAD', pathItem.head, folderName, paramsForPathItem);
-            }
-            if (pathItem.path) {
-                this.addOperationToFolder(path, 'PATH', pathItem.path, folderName, paramsForPathItem);
+            for (i = 0; i < numVerbs; i++) {
+                verb = acceptedPostmanVerbs[i];
+                if (pathItem[verb]) {
+                    this.addOperationToFolder(
+                        path,
+                        verb.toUpperCase(),
+                        pathItem[verb],
+                        folderName,
+                        paramsForPathItem
+                    );
+                }
             }
         },
 
