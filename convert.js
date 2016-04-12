@@ -191,7 +191,8 @@ var uuid = require('node-uuid'),
                 thisParams = this.getParamsForPathItem(params, operation.parameters),
                 hasQueryParams = false,
                 param,
-                requestAttr;
+                requestAttr,
+                thisConsumes = root.globalConsumes;
 
             if (path.length > 0 && path[0] === '/') {
                 path = path.substring(1);
@@ -208,6 +209,15 @@ var uuid = require('node-uuid'),
                         request[requestAttr] = operation[META_KEY][requestAttr];
                     }
                 }
+            }
+
+            if (operation.consumes) {
+                thisConsumes = operation.consumes;
+            }
+            // set the default dataMode for this request, even if it doesn't have a body
+            // eg. for GET requests
+            if (thisConsumes.indexOf('application/x-www-form-urlencoded') > -1) {
+                request.dataMode = 'urlencoded';
             }
 
             // set data and headers
@@ -232,7 +242,12 @@ var uuid = require('node-uuid'),
                     }
 
                     else if (thisParams[param].in === 'formData') {
-                        request.dataMode = 'params';
+                        if (thisConsumes.indexOf('application/x-www-form-urlencoded') > -1) {
+                            request.dataMode = 'urlencoded';
+                        }
+                        else {
+                            request.dataMode = 'params';
+                        }
                         request.data.push({
                             'key': thisParams[param].name,
                             'value': '{{' + thisParams[param].name + '}}',
@@ -336,6 +351,8 @@ var uuid = require('node-uuid'),
             }
 
             this.collectionId = uuid.v4();
+
+            this.globalConsumes = json.consumes || [];
 
             this.handleParams(json.parameters, 'collection');
 
