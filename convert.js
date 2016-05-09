@@ -197,7 +197,22 @@ var uuid = require('node-uuid'),
             if (path.length > 0 && path[0] === '/') {
                 path = path.substring(1);
             }
-            request.url = decodeURI(url.resolve(this.basePath, path));
+
+            //Problem here
+            //url.resolve("http://host.com/", "/api") returns "http://host.com/api"
+            //but url.resolve("http://{{host}}.com/", "/api") returns "http:///%7B..host.com/api"
+            //(note the extra slash after http:)
+            //request.url = decodeURI(url.resolve(this.basePath, path));
+
+            var tempBasePath = this.basePath
+                .replace(/{{/g,"POSTMAN_VARIABLE_OPEN_DB")
+                .replace(/}}/g,"POSTMAN_VARIABLE_CLOSE_DB");
+
+            request.url = decodeURI(url.resolve(tempBasePath, path))
+                .replace(/POSTMAN_VARIABLE_OPEN_DB/g,"{{")
+                .replace(/POSTMAN_VARIABLE_CLOSE_DB/g,"}}");
+
+
             request.method = method;
             request.name = operation.summary;
             request.time = (new Date()).getTime();
