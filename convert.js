@@ -270,7 +270,7 @@ var uuid = require('node-uuid'),
                         });
                     }
                     else if (thisParams[param].in === 'path') {
-                        if(!request.hasOwnProperty("pathVariables")) {
+                        if (!request.hasOwnProperty('pathVariables')) {
                             request.pathVariables = {};
                         }
                         request.pathVariables[thisParams[param].name] = '{{' + thisParams[param].name + '}}';
