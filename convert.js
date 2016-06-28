@@ -204,7 +204,6 @@ var uuid = require('node-uuid'),
             // but url.resolve("http://{{host}}.com/", "/api") returns "http:///%7B..host.com/api"
             // (note the extra slash after http:)
             // request.url = decodeURI(url.resolve(this.basePath, path));
-
             tempBasePath = this.basePath
                 .replace(/{{/g, 'POSTMAN_VARIABLE_OPEN_DB')
                 .replace(/}}/g, 'POSTMAN_VARIABLE_CLOSE_DB');
@@ -269,7 +268,13 @@ var uuid = require('node-uuid'),
                             'type': 'text',
                             'enabled': true
                         });
-                    } // (thisParams[param].in === 'path') case not handled
+                    }
+                    else if (thisParams[param].in === 'path') {
+                        if(!request.hasOwnProperty("pathVariables")) {
+                            request.pathVariables = {};
+                        }
+                        request.pathVariables[thisParams[param].name] = '{{' + thisParams[param].name + '}}';
+                    }
                 }
             }
 
@@ -300,9 +305,9 @@ var uuid = require('node-uuid'),
                 i,
                 verb;
 
-            // replace path variables {petId} with {{..}}
+            // replace path variables {petId} with :petId
             if (path) {
-                path = path.replace('{', '{{').replace('}', '}}');
+                path = path.replace('{', ':').replace('}', '');
             }
 
             for (i = 0; i < numVerbs; i++) {
