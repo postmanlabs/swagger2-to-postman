@@ -29,7 +29,8 @@ The constructor can also take in a map of configuration options
 
 ~~~
 var options = {
-  includeQueryParams: false
+  includeQueryParams: false,
+  tagFilter: "SampleTag"
 };
 
 var swaggerConverter = new Swagger2Postman(options);
@@ -37,3 +38,4 @@ var swaggerConverter = new Swagger2Postman(options);
 
 valid options are:
 includeQueryParams - (default true) Include query string parameters in the request url.
+tagFilter - (default none) Filter resources that have a tag that matches this value.

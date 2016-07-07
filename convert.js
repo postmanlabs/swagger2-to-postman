@@ -31,6 +31,8 @@ var uuid = require('node-uuid'),
 
             this.options.includeQueryParams = typeof (this.options.includeQueryParams) == 'undefined' ?
                                                         true : this.options.includeQueryParams;
+
+            this.options.tagFilter = this.options.tagFilter || null;
         },
 
         setLogger: function (func) {
@@ -169,6 +171,13 @@ var uuid = require('node-uuid'),
         },
 
         addOperationToFolder: function (path, method, operation, folderName, params) {
+            if (this.options.tagFilter &&
+                operation.tags &&
+                operation.tags.indexOf(this.options.tagFilter) === -1) {
+                // Operation has tags that don't match the filter
+                return;
+            }
+
             var root = this,
                 request = {
                     'id': uuid.v4(),
@@ -357,7 +366,7 @@ var uuid = require('node-uuid'),
         addFoldersToCollection: function () {
             var folderName;
             for (folderName in this.folders) {
-                if (this.folders.hasOwnProperty(folderName)) {
+                if (this.folders.hasOwnProperty(folderName) && this.folders[folderName].order.length > 0) {
                     this.collectionJson.folders.push(this.folders[folderName]);
                 }
             }

@@ -16,6 +16,9 @@
   "paths": {
     "Authorization/LoginAPI": {
       "post": {
+        "tags": [
+          "SampleTag"
+        ],
         "summary": "Authenticates you to the system and produces a session token that will be used for future calls",
         "description": "",
         "operationId": "LoginAPI",
