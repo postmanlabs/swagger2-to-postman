@@ -43,4 +43,14 @@ describe('the converter', function () {
         expect(convertWithOptionsResult.collection.requests[3].url.indexOf('{') == -1);
         expect(convertWithoutOptionsResult.collection.requests[3].url.indexOf('{') > 0);
     });
+
+    it('should convert path paramters to postman-compatible paramters', function () {
+        var samplePath = path.join(__dirname, 'data', 'swagger2-with-params.json'),
+            swagger = require(samplePath),
+            converter = new Swagger2Postman(),
+            convertResult = converter.convert(swagger);
+
+        expect(convertResult.collection.requests[0].url.indexOf(':ownerId') > 0);
+        expect(convertResult.collection.requests[0].url.indexOf(':petId') > 0);
+    });
 });
