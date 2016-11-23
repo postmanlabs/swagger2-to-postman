@@ -1,4 +1,4 @@
-var uuid = require('node-uuid'),
+var uuid = require('uuid'),
     jsface = require('jsface'),
     url = require('url'),
     META_KEY = 'x-postman-meta',
