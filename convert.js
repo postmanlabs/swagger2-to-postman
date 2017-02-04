@@ -30,7 +30,7 @@ var uuid = require('node-uuid'),
             this.options = options || {};
 
             this.options.includeQueryParams = typeof (this.options.includeQueryParams) == 'undefined' ?
-                                                        true : this.options.includeQueryParams;
+                true : this.options.includeQueryParams;
         },
 
         setLogger: function (func) {
@@ -209,8 +209,8 @@ var uuid = require('node-uuid'),
                 .replace(/}}/g, 'POSTMAN_VARIABLE_CLOSE_DB');
 
             request.url = decodeURI(url.resolve(tempBasePath, path))
-                .replace(/POSTMAN_VARIABLE_OPEN_DB/g, '{{')
-                .replace(/POSTMAN_VARIABLE_CLOSE_DB/g, '}}');
+                .replace(/POSTMAN_VARIABLE_OPEN_DB/gi, '{{')
+                .replace(/POSTMAN_VARIABLE_CLOSE_DB/gi, '}}');
 
             request.method = method;
             request.name = operation.summary;
