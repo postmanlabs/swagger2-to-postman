@@ -1,5 +1,5 @@
 # swagger20Postman
-Converter for swagger 2.0 JSON to Postman v2
+Converter for swagger 2.0 JSON to Postman Collection v1
 
 convert.js provides a jsFace class - Swagger2Postman. Check test/tescrscript.js for basic usage.
 
