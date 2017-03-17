@@ -40,6 +40,7 @@ describe('the converter', function () {
             convertWithoutOptionsResult = converterWithoutOptions.convert(swagger);
         // Make sure that currentHelper and helperAttributes are processed
 
+        expect(convertWithoutOptionsResult.collection.requests[2].url.indexOf('status=available') > -1);
         expect(convertWithOptionsResult.collection.requests[3].url.indexOf('{') == -1);
         expect(convertWithoutOptionsResult.collection.requests[3].url.indexOf('{') > 0);
     });
@@ -50,6 +51,7 @@ describe('the converter', function () {
             converter = new Swagger2Postman(),
             convertResult = converter.convert(swagger);
 
+        expect(convertResult.collection.requests[0].pathVariables.ownerId === 42);
         expect(convertResult.collection.requests[0].url.indexOf(':ownerId') > 0);
         expect(convertResult.collection.requests[0].url.indexOf(':petId') > 0);
     });

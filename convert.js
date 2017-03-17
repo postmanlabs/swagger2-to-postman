@@ -192,6 +192,7 @@ var uuid = require('node-uuid'),
                 hasQueryParams = false,
                 param,
                 requestAttr,
+                defaultVal,
                 thisConsumes = root.globalConsumes,
                 tempBasePath;
 
@@ -238,16 +239,23 @@ var uuid = require('node-uuid'),
             for (param in thisParams) {
                 if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
+
+                    // Get default value for .in = query/header/path/formData
+                    defaultVal = '{{' + thisParams[param].name + '}}';
+                    if (thisParams[param].hasOwnProperty('default')) {
+                        defaultVal = thisParams[param].default;
+                    }
+
                     if (thisParams[param].in === 'query' && this.options.includeQueryParams !== false) {
                         if (!hasQueryParams) {
                             hasQueryParams = true;
                             request.url += '?';
                         }
-                        request.url += thisParams[param].name + '={{' + thisParams[param].name + '}}&';
+                        request.url += thisParams[param].name + '=' + defaultVal + '&';
                     }
 
                     else if (thisParams[param].in === 'header') {
-                        request.headers += thisParams[param].name + ': {{' + thisParams[param].name + '}}\n';
+                        request.headers += thisParams[param].name + ': ' + defaultVal + '\n';
                     }
 
                     else if (thisParams[param].in === 'body') {
@@ -264,7 +272,7 @@ var uuid = require('node-uuid'),
                         }
                         request.data.push({
                             'key': thisParams[param].name,
-                            'value': '{{' + thisParams[param].name + '}}',
+                            'value': defaultVal,
                             'type': 'text',
                             'enabled': true
                         });
@@ -273,7 +281,7 @@ var uuid = require('node-uuid'),
                         if (!request.hasOwnProperty('pathVariables')) {
                             request.pathVariables = {};
                         }
-                        request.pathVariables[thisParams[param].name] = '{{' + thisParams[param].name + '}}';
+                        request.pathVariables[thisParams[param].name] = defaultVal;
                     }
                 }
             }

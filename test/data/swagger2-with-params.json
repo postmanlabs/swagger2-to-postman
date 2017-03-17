@@ -24,8 +24,8 @@
           "name": "ownerId",
           "description": "Owner Id",
           "required": true,
-          "type": "integer"
-
+          "type": "integer",
+          "default": "42"
         }, {
           "in": "path",
           "name": "petId",
