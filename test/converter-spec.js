@@ -28,6 +28,17 @@ describe('the converter', function () {
         expect(convertResult.collection.requests[0]).to.have.key('helperAttributes');
     });
 
+    it('must read values consumes/produces', function () {
+        var samplePath = path.join(__dirname, 'data', 'swagger_aws_2.json'),
+            swagger = require(samplePath),
+            converter = new Swagger2Postman(),
+            convertResult = converter.convert(swagger),
+            request = convertResult.collection.requests[0];
+        // Make sure that currentHelper and helperAttributes are processed
+        expect(request.headers.indexOf('Accept: text/json') > -1).to.be(true);
+        expect(request.headers.indexOf('Content-Type: application/json') > -1).to.be(true);
+    });
+
     it('should obey the includeQueryParams option', function () {
         var options = {
                 includeQueryParams: false
@@ -40,9 +51,9 @@ describe('the converter', function () {
             convertWithoutOptionsResult = converterWithoutOptions.convert(swagger);
         // Make sure that currentHelper and helperAttributes are processed
 
-        expect(convertWithoutOptionsResult.collection.requests[2].url.indexOf('status=available') > -1);
-        expect(convertWithOptionsResult.collection.requests[3].url.indexOf('{') == -1);
-        expect(convertWithoutOptionsResult.collection.requests[3].url.indexOf('{') > 0);
+        expect(convertWithoutOptionsResult.collection.requests[2].url.indexOf('status=available') > -1).to.be(true);
+        expect(convertWithOptionsResult.collection.requests[3].url.indexOf('{') == -1).to.be(true);
+        expect(convertWithoutOptionsResult.collection.requests[3].url.indexOf('{') > 0).to.be(true);
     });
 
     it('should convert path paramters to postman-compatible paramters', function () {
@@ -51,8 +62,8 @@ describe('the converter', function () {
             converter = new Swagger2Postman(),
             convertResult = converter.convert(swagger);
 
-        expect(convertResult.collection.requests[0].pathVariables.ownerId === 42);
-        expect(convertResult.collection.requests[0].url.indexOf(':ownerId') > 0);
-        expect(convertResult.collection.requests[0].url.indexOf(':petId') > 0);
+        expect(convertResult.collection.requests[0].pathVariables.ownerId == '42').to.be(true);
+        expect(convertResult.collection.requests[0].url.indexOf(':ownerId') > -1).to.be(true);
+        expect(convertResult.collection.requests[0].url.indexOf(':petId') > -1).to.be(true);
     });
 });

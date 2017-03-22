@@ -194,6 +194,7 @@ var uuid = require('node-uuid'),
                 requestAttr,
                 defaultVal,
                 thisConsumes = root.globalConsumes,
+                thisProduces = root.globalProduces,
                 tempBasePath;
 
             if (path.length > 0 && path[0] === '/') {
@@ -226,13 +227,25 @@ var uuid = require('node-uuid'),
                 }
             }
 
+            if (operation.produces) {
+                thisProduces = operation.produces;
+            }
+
             if (operation.consumes) {
                 thisConsumes = operation.consumes;
             }
+
             // set the default dataMode for this request, even if it doesn't have a body
             // eg. for GET requests
             if (thisConsumes.indexOf('application/x-www-form-urlencoded') > -1) {
                 request.dataMode = 'urlencoded';
+            }
+
+            if (thisProduces.length > 0) {
+                request.headers += 'Accept: ' + thisProduces.join(', ') + '\n';
+            }
+            if (thisConsumes.length > 0) {
+                request.headers += 'Content-Type: ' + thisConsumes[0] + '\n';
             }
 
             // set data and headers
@@ -381,6 +394,8 @@ var uuid = require('node-uuid'),
             this.collectionId = uuid.v4();
 
             this.globalConsumes = json.consumes || [];
+
+            this.globalProduces = json.produces || [];
 
             this.handleParams(json.parameters, 'collection');
 
