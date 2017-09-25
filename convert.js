@@ -178,6 +178,7 @@ var uuid = require('node-uuid'),
                     'preRequestScript': '',
                     'method': 'GET',
                     'data': [],
+                    'rawModeData': null,
                     'dataMode': 'params',
                     'description': operation.description || '',
                     'descriptionFormat': 'html',
@@ -273,7 +274,7 @@ var uuid = require('node-uuid'),
 
                     else if (thisParams[param].in === 'body') {
                         request.dataMode = 'raw';
-                        request.data = thisParams[param].description;
+                        request.rawModeData = thisParams[param].description;
                     }
 
                     else if (thisParams[param].in === 'formData') {
