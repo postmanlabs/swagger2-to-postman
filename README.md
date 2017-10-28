@@ -1,21 +1,29 @@
-# swagger20Postman
+# Swagger 2 to Postman converter
 Converter for swagger 2.0 JSON to Postman Collection v1
 
-convert.js provides a jsFace class - Swagger2Postman. Check test/tescrscript.js for basic usage.
+# Install dependencies
+run ` $ npm install` to install the dependencies
 
-Initialise class:
+# Run NPM test
+run ` $ npm test` to see the converter in action
+
+# Want to convert your own files?
+convert.js provides a jsFace class - Swagger2Postman. 
+Check test/converter.spec.js for basic usage.
+
+**Initialise class:**
 
     var swaggerConverter = new Swagger2Postman();
 
-Optionally, set a logger:
+**Optionally, set a logger:**
 
     swaggerConverter.setLogger(console.log);
 
-Convert your Swagger 2.0 JSON:
+**Convert your Swagger 2.0 JSON:**
 
     var convertResult = swaggerConverter.convert(swaggerJson);
 
-Check the result:
+**Check the result:**
 
     convertResult.status === "failed"
 for unsuccessful conversions. Check convertResult.message
@@ -24,7 +32,7 @@ for unsuccessful conversions. Check convertResult.message
 for successful conversions. Check convertResult.collection for the Postman collection JSON
 
 
-Optional Configuration Parameters:
+**Optional Configuration Parameters:**
 The constructor can also take in a map of configuration options
 
 ~~~
@@ -35,5 +43,5 @@ var options = {
 var swaggerConverter = new Swagger2Postman(options);
 ~~~
 
-valid options are:
+**valid options are:**
 includeQueryParams - (default true) Include query string parameters in the request url.
