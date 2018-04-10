@@ -7,7 +7,7 @@
     "test": "scripts/test.sh"
   },
   "dependencies": {
-    "jsface": ">=2.4.9",
+    "jsface": "*",
     "uuid": ">=3.2.1"
   },
   "repository": {
