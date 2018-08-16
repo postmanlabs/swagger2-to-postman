@@ -4,11 +4,14 @@
   "description": "A module to convert swagger 2.0 JSONs to Postman Collection Format v1",
   "main": "convert.js",
   "scripts": {
-    "test": "scripts/test.sh"
+    "test": "scripts/test.sh",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "jsface": "^2.2.0",
-    "uuid": "^3.2.1"
+    "uuid": "^3.2.1",
+    "snyk": "^1.90.2"
   },
   "repository": {
     "type": "git",
@@ -29,6 +32,7 @@
     "expect.js": "^0.3.1",
     "jscs": "^2.1.0",
     "jshint": "^2.8.0",
-    "mocha": "^2.2.5"
-  }
+    "mocha": "^4.0.0"
+  },
+  "snyk": true
 }

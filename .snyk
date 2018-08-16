@@ -1,0 +1,19 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.12.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:lodash:20180130':
+    - jscs > lodash:
+        patched: '2018-08-16T08:59:18.634Z'
+    - jscs > xmlbuilder > lodash:
+        patched: '2018-08-16T08:59:18.634Z'
+    - jscs > babel-jscs > babel-core > lodash:
+        patched: '2018-08-16T08:59:18.634Z'
+    - jscs > jscs-jsdoc > jsdoctypeparser > lodash:
+        patched: '2018-08-16T08:59:18.634Z'
+    - jscs > babel-jscs > babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2018-08-16T08:59:18.634Z'
+  'npm:minimatch:20160620':
+    - jscs > babel-jscs > babel-core > minimatch:
+        patched: '2018-08-16T08:59:18.634Z'
