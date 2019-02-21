@@ -327,9 +327,12 @@ var uuidv4 = require('uuid/v4'),
                 i,
                 verb;
 
+            // remove verbose query params from path, like: {?paramA,paramB} 
             // replace path variables {petId} with :petId
             if (path) {
-                path = path.replace(/{/g, ':').replace(/}/g, '');
+                path = path.replace(/{[?][a-zA-Z0-9_,]+}/g, '')
+                    .replace(/{/g, ':')
+                    .replace(/}/g, '');
             }
 
             for (i = 0; i < numVerbs; i++) {
