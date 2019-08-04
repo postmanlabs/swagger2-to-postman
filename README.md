@@ -9,7 +9,7 @@ run `$ npm test` to see the converter in action
 
 # Want to convert your own files?
 convert.js provides a jsFace class - Swagger2Postman. 
-Check test/converter.spec.js for basic usage.
+Check test/converter-spec.js for basic usage.
 
 **Initialise class:**
 
