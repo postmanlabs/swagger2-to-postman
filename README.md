@@ -55,5 +55,54 @@ var options = {
 var swaggerConverter = new Swagger2Postman(options);
 ```
 
-**valid options are:**
-includeQueryParams - (default true) Include query string parameters in the request url.
+**Valid options are:**
+
+* includeQueryParams - (default true) Include query string parameters in the request url.
+* transforms - (default empty) Map used to transform Swagger variables to differently named Postman variables. See [Transforms](#transforms) section below for details.
+
+**Transforms**
+
+```js
+this.options = {
+   transforms: {
+        header: {
+            '<SWAGGER HEADER NAME>': '<POSTMAN REPLACEMENT>',
+       }, path: {
+            '<SWAGGER PATH VARIABLE NAME>': '<POSTMAN REPLACEMENT>',
+      }, formData: {
+            '<SWAGGER FORMDATA VARIABLE NAME>': '<POSTMAN REPLACEMENT>',
+      }, body: {
+            '<SWAGGER BODY VARIABLE NAME>': '<POSTMAN REPLACEMENT>',
+      }
+   }
+}
+```
+
+The <POSTMAN REPLACEMENT> must contain the wrapping double-curly braces ({{...}}). The <POSTMAN REPLACEMENT> may contain any other hardcoded text/values as well. For instance, a common need for this is setting an Authorization HTTP header, that requires a Bearer prefix, for example:
+
+```js
+this.options = {
+   transforms: {
+        header: {
+           'Authorization': 'Bearer {{ACCESS_TOKEN}}'
+        }
+   }
+}
+```
+
+An example initializing the Swagger2Postman converter w/ transform parameters is as follows:
+
+```js
+converter = new Swagger2Postman({
+    includeQueryParams: false,
+    transforms: {
+        header: {
+            'api-key': '{{API_KEY}}',
+            'Authorization': 'Bearer {{ACCESS_TOKEN}}',
+        },
+        path: {
+            'ownerId': '{{OWNER_ID}}'
+        }
+    }
+});
+```
