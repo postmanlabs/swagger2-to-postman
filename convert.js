@@ -28,6 +28,7 @@ var uuidv4 = require('uuid/v4'),
             };
 
             this.options = options || {};
+            this.transforms = this.options.transforms || {};
 
             this.options.includeQueryParams = typeof (this.options.includeQueryParams) == 'undefined' ?
                 true : this.options.includeQueryParams;
@@ -53,6 +54,29 @@ var uuidv4 = require('uuid/v4'),
             }
 
             return new ConvertResult('passed', '');
+        },
+
+        transformParameter: function (parameter, transforms) {
+            transforms = transforms || {};
+
+            if (parameter in transforms) {
+                return transforms[parameter];
+            }
+            else {
+                return '{{' + parameter + '}}';
+            }
+        },
+
+        getPostmanVariable: function (thisParams, param, transforms) {
+            var postmanVariableName = this.transformParameter(thisParams[param].name, transforms),
+            // Get default value for .in = query/header/path/formData
+            defaultVal = postmanVariableName;
+
+            if (thisParams[param].hasOwnProperty('default')) {
+                defaultVal = thisParams[param].default;
+            }
+
+            return defaultVal;
         },
 
         setBasePath: function (json) {
@@ -193,10 +217,10 @@ var uuidv4 = require('uuid/v4'),
                 hasQueryParams = false,
                 param,
                 requestAttr,
-                defaultVal,
                 thisConsumes = root.globalConsumes,
                 thisProduces = root.globalProduces,
-                tempBasePath;
+                tempBasePath,
+                transforms = this.options.transforms || {};
 
             if (path.length > 0 && path[0] === '/') {
                 path = path.substring(1);
@@ -254,29 +278,27 @@ var uuidv4 = require('uuid/v4'),
                 if (thisParams.hasOwnProperty(param) && thisParams[param]) {
                     this.logger('Processing param: ' + JSON.stringify(param));
 
-                    // Get default value for .in = query/header/path/formData
-                    defaultVal = '{{' + thisParams[param].name + '}}';
-                    if (thisParams[param].hasOwnProperty('default')) {
-                        defaultVal = thisParams[param].default;
-                    }
-
                     if (thisParams[param].in === 'query' && this.options.includeQueryParams !== false) {
                         if (!hasQueryParams) {
                             hasQueryParams = true;
                             request.url += '?';
                         }
-                        request.url += thisParams[param].name + '=' + defaultVal + '&';
-                    }
 
+                        request.url += thisParams[param].name +
+                            '=' +
+                            this.getPostmanVariable(thisParams, param, transforms.query) +
+                            '&';
+                    }
                     else if (thisParams[param].in === 'header') {
-                        request.headers += thisParams[param].name + ': ' + defaultVal + '\n';
+                        request.headers += thisParams[param].name +
+                            ': ' +
+                            this.getPostmanVariable(thisParams, param, transforms.header) +
+                            '\n';
                     }
-
                     else if (thisParams[param].in === 'body') {
                         request.dataMode = 'raw';
-                        request.rawModeData = thisParams[param].description;
+                        request.rawModeData = this.getPostmanVariable(thisParams, param, transforms.body);
                     }
-
                     else if (thisParams[param].in === 'formData') {
                         if (thisConsumes.indexOf('application/x-www-form-urlencoded') > -1) {
                             request.dataMode = 'urlencoded';
@@ -286,7 +308,7 @@ var uuidv4 = require('uuid/v4'),
                         }
                         request.data.push({
                             'key': thisParams[param].name,
-                            'value': defaultVal,
+                            'value': this.getPostmanVariable(thisParams, param, transforms.formData),
                             'type': 'text',
                             'enabled': true
                         });
@@ -295,7 +317,8 @@ var uuidv4 = require('uuid/v4'),
                         if (!request.hasOwnProperty('pathVariables')) {
                             request.pathVariables = {};
                         }
-                        request.pathVariables[thisParams[param].name] = defaultVal;
+                        request.pathVariables[thisParams[param].name] =
+                                this.getPostmanVariable(thisParams, param, transforms.path);
                     }
                 }
             }

@@ -1,0 +1,65 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "My API",
+    "version": "1.0.0",
+    "title": "Awesome Pets API",
+    "termsOfService": "http://www.domain.com",
+    "contact": {
+      "name": "support@domain.com"
+    }
+  },
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/owner/{ownerId}/pet/{petId}": {
+      "post": {
+        "summary": "Find pets belonging to a owner",
+        "description": "",
+        "operationId": "findPetsOfOwners",
+        "parameters": [{
+          "in": "path",
+          "name": "ownerId",
+          "description": "Should be transformed to Postman variable: {{OWNER_ID}}",
+          "required": true,
+          "type": "integer"
+        }, {
+          "in": "path",
+          "name": "petId",
+          "description": "Do NOT transform! Postman variable: {{petId}}",
+          "required": true,
+          "type": "integer"
+        }, {
+          "in": "header",
+          "name": "api-key",
+          "description": "Transform to Postman variable: {{API_KEY}}",
+          "required": true,
+          "type": "string"          
+        }, {
+          "in": "header",
+          "name": "Authorization",
+          "description": "Transform to Postman variable: Bearer {{ACCESS_TOKEN}}",
+          "required": true,
+          "type": "string"          
+        }, {
+          "in": "header",
+          "name": "withDefaultValue",
+          "description": "Should inject the default value and not any variable: 42",
+          "required": true,
+          "type": "integer",
+          "default": 42
+        }],
+        "responses": {
+          "200": {
+            "description": "Pet found successfully.",
+            "schema": {
+              "$ref": "#/definitions/Pet"
+            }
+          }
+        }
+      }
+    }
+  }
+}

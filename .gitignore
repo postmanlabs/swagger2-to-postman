@@ -1,9 +1,13 @@
 # Idea
 .idea/
 
+#VS Code
+.vscode
+
 #################  
 ## npm
 #################
 
 npm-debug.log
 node_modules/
+
