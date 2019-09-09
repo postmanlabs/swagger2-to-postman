@@ -23,7 +23,10 @@ var uuidv4 = require('uuid/v4'),
             this.basePath = '';
             this.collectionId = '';
             this.folders = {};
+            // Base parameters are the reference-able collection parameters
             this.baseParams = {};
+            // Resource parameters are shared to all operations under the resource
+            this.resourceParams = {};
             this.logger = function () {
             };
 
@@ -83,8 +86,10 @@ var uuidv4 = require('uuid/v4'),
             var segments = pathUrl.split('/'),
                 numSegments = segments.length,
                 folderName = null;
+
             this.logger('Getting folder name for path: ' + pathUrl);
             this.logger('Segments: ' + JSON.stringify(segments));
+
             if (numSegments > 1) {
                 folderName = segments[1];
 
@@ -120,64 +125,41 @@ var uuidv4 = require('uuid/v4'),
             this.collectionJson.description = json.info.description;
         },
 
-        getParamsForPathItem: function (oldParams, newParams) {
+        getParamsForPathItem: function (params) {
             var retVal = {},
-                numOldParams,
-                numNewParams,
+                numParams,
                 i,
                 parts,
-                lastPart,
-                getBaseParam;
+                lastPart;
 
             // Ensure params are arrays of objects.
             // The param be single-level nested objects if they come from the retVal of this method!
-            if (this.isObject(oldParams)) {
-                oldParams = this.paramsObjectToArray(oldParams);
-            }
-            if (this.isObject(newParams)) {
-                oldParams = this.paramsObjectToArray(newParams);
+
+            if (this.isObject(params)) {
+                params = this.paramsObjectToArray(params);
             }
 
-            oldParams = oldParams || [];
-            newParams = newParams || [];
+            params = params || [];
+            numParams = params.length;
 
-            numOldParams = oldParams.length;
-            numNewParams = newParams.length;
-
-            for (i = 0; i < numOldParams; i++) {
-                if (oldParams[i].$ref) {
+            for (i = 0; i < numParams; i++) {
+                if (params[i].$ref) {
                     // this is a ref
-                    if (oldParams[i].$ref.indexOf('#/parameters') === 0) {
-                        parts = oldParams[i].$ref.split('/');
+                    if (params[i].$ref.indexOf('#/parameters') === 0) {
+                        parts = params[i].$ref.split('/');
                         lastPart = parts[parts.length - 1];
-                        getBaseParam = this.baseParams[lastPart];
-                        retVal[lastPart] = getBaseParam;
+                        retVal[lastPart] = this.baseParams[lastPart];
                     }
                 }
                 else {
-                    retVal[oldParams[i].name] = oldParams[i];
-                }
-            }
-
-            for (i = 0; i < numNewParams; i++) {
-                if (newParams[i].$ref) {
-                    // this is a ref
-                    if (newParams[i].$ref.indexOf('#/parameters') === 0) {
-                        parts = newParams[i].$ref.split('/');
-                        lastPart = parts[parts.length - 1];
-                        getBaseParam = this.baseParams[lastPart];
-                        retVal[lastPart] = getBaseParam;
-                    }
-                }
-                else {
-                    retVal[newParams[i].name] = newParams[i];
+                    retVal[params[i].name] = params[i];
                 }
             }
 
             return retVal;
         },
 
-        addOperationToFolder: function (path, method, operation, folderName, params) {
+        addOperationToFolder: function (path, method, operation, folderName) {
             var root = this,
                 request = {
                     'id': uuidv4(),
@@ -198,7 +180,8 @@ var uuidv4 = require('uuid/v4'),
                     'collectionId': root.collectionId,
                     'synced': false
                 },
-                thisParams = this.getParamsForPathItem(params, operation.parameters),
+                thisParams = this.getParamsForPathItem(
+                    this.mergeObjectArrays(this.resourceParams, operation.parameters)),
                 hasQueryParams = false,
                 param,
                 requestAttr,
@@ -328,7 +311,8 @@ var uuidv4 = require('uuid/v4'),
                 return;
             }
 
-            var paramsForPathItem = this.getParamsForPathItem(this.baseParams, pathItem.parameters),
+            var paramsForPathItem = this.getParamsForPathItem(
+                this.mergeObjectArrays(pathItem.parameters, this.resourceParams)),
                 acceptedPostmanVerbs = [
                     'get', 'put', 'post', 'patch', 'delete', 'copy', 'head', 'options',
                     'link', 'unlink', 'purge', 'lock', 'unlock', 'propfind', 'view'],
@@ -344,6 +328,8 @@ var uuidv4 = require('uuid/v4'),
             for (i = 0; i < numVerbs; i++) {
                 verb = acceptedPostmanVerbs[i];
                 if (pathItem[verb]) {
+                    this.logger('Adding Operation to Folder: ' + verb.toUpperCase() + ' ' + path);
+
                     this.addOperationToFolder(
                         path,
                         verb.toUpperCase(),
@@ -359,7 +345,6 @@ var uuidv4 = require('uuid/v4'),
             var i,
                 paths = json.paths,
                 path,
-                pathParameter,
                 folderName;
 
             // Add a folder for each path
@@ -369,17 +354,16 @@ var uuidv4 = require('uuid/v4'),
                     this.logger('Adding path item. path = ' + path + ' folder = ' + folderName);
 
                     // Update a specific Operations parameters with any parent Resource parameters.
-                    paths[path] = paths[path] || [];
+                    this.resourceParams = [];
 
-                    if (path.startsWith('/') && paths.parameters) {
-                        for (i = 0; i < paths.parameters.length; i++) {
-                            pathParameter = paths.parameters[i];
-                            paths[path].parameters = paths[path].parameters || [];
-                            paths[path].parameters.push(pathParameter);
+                    if (path.startsWith('/')) {
+                        if (paths[path].parameters) {
+                            for (i = 0; i < paths[path].parameters.length; i++) {
+                                this.resourceParams.push(paths[path].parameters[i]);
+                            }
                         }
+                        this.addPathItemToFolder(path, paths[path], folderName);
                     }
-
-                    this.addPathItemToFolder(path, paths[path], folderName);
                 }
             }
         },
@@ -421,6 +405,7 @@ var uuidv4 = require('uuid/v4'),
 
             this.globalProduces = json.produces || [];
 
+            // Pull reference-able parameter definitions into memory
             this.handleParams(json.parameters, 'collection');
 
             this.handleInfo(json);
@@ -432,7 +417,7 @@ var uuidv4 = require('uuid/v4'),
             this.addFoldersToCollection();
 
             this.collectionJson.id = this.collectionId;
-            // this.logger(JSON.stringify(this.collectionJson));
+
             this.logger('Swagger converted successfully');
 
             validationResult.collection = this.collectionJson;
@@ -457,6 +442,33 @@ var uuidv4 = require('uuid/v4'),
                     result.push(params[key]);
                 }
             }
+            return result;
+        },
+
+        /**
+         * Merge the 2 objects; with the first object taking precedence on key-conflicts.
+         * @param {*} obj1 the assertive object.
+         * @param {*} obj2 the deferring object.
+         */
+        mergeObjectArrays: function (obj1, obj2) {
+            var i,
+                result = [],
+                tracker = [];
+
+            obj1 = obj1 || [];
+            obj2 = obj2 || [];
+
+            for (i = 0; i < obj1.length; i++) {
+                result.push(obj1[i]);
+                tracker.push(obj1[i].name);
+            }
+
+            for (i = 0; i < obj2.length; i++) {
+                if (tracker.indexOf(obj2[i].name) === -1) {
+                    result.push(obj2[i]);
+                }
+            }
+
             return result;
         },
 

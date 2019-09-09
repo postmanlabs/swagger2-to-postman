@@ -73,7 +73,9 @@ describe('the converter', function () {
             converter = new Swagger2Postman(),
             convertResult = converter.convert(swagger);
 
-        expect(convertResult.collection.requests[0].pathVariables.ownerId).to.be('{{ownerId}}');
-        expect(convertResult.collection.requests[0].pathVariables.petId).to.be('{{petId}}');
+        expect(convertResult.collection.requests[0].pathVariables.operationParameter).to.be('{{operationParameter}}');
+        expect(convertResult.collection.requests[0].pathVariables.resourceParameter).to.be('{{resourceParameter}}');
+        expect(convertResult.collection.requests[0].pathVariables.unusedParameter).to.be(undefined);
+        expect(convertResult.collection.requests[0].pathVariables.referencedParameter).to.be('{{referencedParameter}}');
     });
 });
