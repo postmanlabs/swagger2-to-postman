@@ -129,7 +129,8 @@ var uuidv4 = require('uuid/v4'),
                 lastPart,
                 getBaseParam;
 
-            // Ensure params are arrays of objects. The param be single-level nested objects if they come from the retVal of this method!
+            // Ensure params are arrays of objects.
+            // The param be single-level nested objects if they come from the retVal of this method!
             if (this.isObject(oldParams)) {
                 oldParams = this.paramsObjectToArray(oldParams);
             }
@@ -355,10 +356,11 @@ var uuidv4 = require('uuid/v4'),
         },
 
         handlePaths: function (json) {
-            var paths = json.paths,
+            var i,
+                paths = json.paths,
                 path,
-                folderName,
-                pathParameters;
+                pathParameter,
+                folderName;
 
             // Add a folder for each path
             for (path in paths) {
@@ -366,16 +368,17 @@ var uuidv4 = require('uuid/v4'),
                     folderName = this.getFolderNameForPath(path);
                     this.logger('Adding path item. path = ' + path + ' folder = ' + folderName);
 
-                    // Update a specific Operations parameters with any parent Resource parameters. 
+                    // Update a specific Operations parameters with any parent Resource parameters.
                     paths[path] = paths[path] || [];
-                
+
                     if (path.startsWith('/') && paths.parameters) {
-                        paths.parameters.forEach((pathParameter => { 
+                        for (i = 0; i < paths.parameters.length; i++) {
+                            pathParameter = paths.parameters[i];
                             paths[path].parameters = paths[path].parameters || [];
                             paths[path].parameters.push(pathParameter);
-                        }));
+                        }
                     }
-                    
+
                     this.addPathItemToFolder(path, paths[path], folderName);
                 }
             }
@@ -444,11 +447,12 @@ var uuidv4 = require('uuid/v4'),
 
         /**
          * Converts a params collection object into an arrow of param objects.
-         * @param {*} params 
+         * @param {*} params
          */
         paramsObjectToArray: function (params) {
-            var result = [];
-            for (var key in params) {
+            var key,
+                result = [];
+            for (key in params) {
                 if (params.hasOwnProperty(key)) {
                     result.push(params[key]);
                 }
@@ -458,7 +462,7 @@ var uuidv4 = require('uuid/v4'),
 
         /**
          * Checks if the parameter is a JavaScript object
-         * @param {*} value 
+         * @param {*} value
          */
         isObject: function (value) {
             return value && typeof value === 'object' && value.constructor === Object;
