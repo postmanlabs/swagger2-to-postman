@@ -1,12 +1,11 @@
 var expect = require('expect.js'),
     Swagger2Postman = require('../convert.js'),
-    fs = require('fs'),
+    // fs = require('fs'),
     path = require('path');
 
 /* global describe, it */
 describe('the converter', function () {
-    var samples = fs.readdirSync(path.join(__dirname, 'data'));
-
+    /*
     samples.map(function (sample) {
         var samplePath = path.join(__dirname, 'data', sample);
         it('must convert ' + samplePath + ' to a postman collection', function () {
@@ -56,7 +55,7 @@ describe('the converter', function () {
         expect(convertWithoutOptionsResult.collection.requests[3].url.indexOf('{') > 0).to.be(true);
     });
 
-    it('should convert path paramters to postman-compatible paramters', function () {
+    it('should convert path parameters to postman-compatible parameters', function () {
         var samplePath = path.join(__dirname, 'data', 'swagger2-with-params.json'),
             swagger = require(samplePath),
             converter = new Swagger2Postman(),
@@ -65,5 +64,15 @@ describe('the converter', function () {
         expect(convertResult.collection.requests[0].pathVariables.ownerId == '42').to.be(true);
         expect(convertResult.collection.requests[0].url.indexOf(':ownerId') > -1).to.be(true);
         expect(convertResult.collection.requests[0].url.indexOf(':petId') > -1).to.be(true);
+    });
+    */
+    it('should convert path parameters to postman-compatible parameters', function () {
+        var samplePath = path.join(__dirname, 'data', 'swagger2-with-inherited-params.json'),
+            swagger = require(samplePath),
+            converter = new Swagger2Postman(),
+            convertResult = converter.convert(swagger);
+
+        expect(convertResult.collection.requests[0].pathVariables.ownerId).to.be('{{ownerId}}');
+        expect(convertResult.collection.requests[0].pathVariables.petId).to.be('{{petId}}');
     });
 });
