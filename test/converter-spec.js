@@ -56,7 +56,7 @@ describe('the converter', function () {
         expect(convertWithoutOptionsResult.collection.requests[3].url.indexOf('{') > 0).to.be(true);
     });
 
-    it('should convert path paramters to postman-compatible paramters', function () {
+    it('should convert path parameters to postman-compatible parameters', function () {
         var samplePath = path.join(__dirname, 'data', 'swagger2-with-params.json'),
             swagger = require(samplePath),
             converter = new Swagger2Postman(),
@@ -65,5 +65,17 @@ describe('the converter', function () {
         expect(convertResult.collection.requests[0].pathVariables.ownerId == '42').to.be(true);
         expect(convertResult.collection.requests[0].url.indexOf(':ownerId') > -1).to.be(true);
         expect(convertResult.collection.requests[0].url.indexOf(':petId') > -1).to.be(true);
+    });
+
+    it('should convert path parameters to postman-compatible parameters', function () {
+        var samplePath = path.join(__dirname, 'data', 'swagger2-with-inherited-params.json'),
+            swagger = require(samplePath),
+            converter = new Swagger2Postman(),
+            convertResult = converter.convert(swagger);
+
+        expect(convertResult.collection.requests[0].pathVariables.operationParameter).to.be('{{operationParameter}}');
+        expect(convertResult.collection.requests[0].pathVariables.resourceParameter).to.be('{{resourceParameter}}');
+        expect(convertResult.collection.requests[0].pathVariables.unusedParameter).to.be(undefined);
+        expect(convertResult.collection.requests[0].pathVariables.referencedParameter).to.be('{{referencedParameter}}');
     });
 });

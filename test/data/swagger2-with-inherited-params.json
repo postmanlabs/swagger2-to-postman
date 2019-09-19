@@ -1,0 +1,62 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "My API",
+    "version": "1.0.0",
+    "title": "Awesome Test API",
+    "termsOfService": "http://www.domain.com",
+    "contact": {
+      "name": "support@domain.com"
+    }
+  },
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {  
+    "/x/{resourceParameter}/y/{operationParameter}": {
+      "parameters": [{
+        "in": "path",
+        "name": "resourceParameter",
+        "description": "Parameter set at the Resource level",
+        "required": true,
+        "type": "integer"
+      }],
+      "post": {
+        "summary": "Test operation",
+        "description": "",
+        "operationId": "testOperation",
+        "parameters": [{
+          "in": "path",
+          "name": "operationParameter",
+          "description": "Parameter set at the Operation level",
+          "required": true,
+          "type": "integer"
+        }, {
+          "$ref": "#/parameters/referenced-parameter"
+        }],
+        "responses": {
+          "200": {
+            "description": "Test operation successful."
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "referenced-parameter": {
+      "name": "referencedParameter",
+      "description": "This is a referenced parameter",
+      "required": true,
+      "type": "string",
+      "in": "path"
+    },
+    "unused-parameter": {
+      "name": "unusedParameter",
+      "description": "This should never be included",
+      "required": true,
+      "type": "string",
+      "in": "path"
+    }
+  }
+}
