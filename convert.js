@@ -381,6 +381,8 @@ var uuidv4 = require('uuid/v4'),
             for (folderName in this.folders) {
                 if (this.folders.hasOwnProperty(folderName)) {
                     this.collectionJson.folders.push(this.folders[folderName]);
+                    this.collectionJson.folders_order = this.collectionJson.folders_order || [];
+                    this.collectionJson.folders_order.push(folder.id);
                 }
             }
         },
